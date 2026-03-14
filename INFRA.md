@@ -1,5 +1,20 @@
 # Infrastructure & Deployment
 
+## Domain
+
+**Production URL:** `https://kriegspiel.org`
+
+The domain `kriegspiel.org` is owned by the project. DNS should point to the VPS IP:
+
+| Record | Type | Value |
+|---|---|---|
+| `kriegspiel.org` | A | `<VPS_IP>` |
+| `www.kriegspiel.org` | CNAME | `kriegspiel.org` |
+
+TLS certificates via Let's Encrypt (certbot, auto-renewing). NGINX handles both `kriegspiel.org` and `www.kriegspiel.org`, redirecting `www` to bare domain.
+
+---
+
 ## Deployment Topology
 
 Single VPS running Docker Compose. Suitable for the expected user base (niche chess variant). Scales vertically before needing horizontal scaling.
@@ -27,7 +42,7 @@ Single VPS running Docker Compose. Suitable for the expected user base (niche ch
 │  │  │  Mongo Express   │                  │ │
 │  │  │  :8081           │                  │ │
 │  │  └──────────────────┘                  │ │
-│  └──────────────────────────────────────────┘ │
+│  └────────────────────────────────────────┘ │
 │                                             │
 │  certbot (Let's Encrypt)                    │
 │  unattended-upgrades                        │
