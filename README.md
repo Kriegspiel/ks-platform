@@ -19,6 +19,55 @@ This repository is the **blueprint** for building the Kriegspiel platform. It co
 | [INFRA.md](./INFRA.md) | Docker, CI/CD, deployment, monitoring |
 | [MILESTONES.md](./MILESTONES.md) | Phased delivery plan with acceptance criteria |
 | [LOGO.md](./LOGO.md) | Logo design spec — double-headed knight, light/dark theme toggle |
+| [DESIGN.md](./DESIGN.md) | Visual design system — colors, typography, spacing, components |
+
+## Repository Structure
+
+Beyond the plan documents above, this repo contains scaffold directories for implementation. Agents building the platform should place code and assets in these locations:
+
+```
+ks-platform/
+├── README.md                   # This file
+├── ARCHITECTURE.md             # System architecture
+├── DATA_MODEL.md               # MongoDB schemas
+├── API_SPEC.md                 # REST + WebSocket API
+├── GAME_ENGINE.md              # Game engine integration
+├── AUTH.md                     # Authentication design
+├── FRONTEND.md                 # Frontend spec
+├── DESIGN.md                   # Visual design system
+├── INFRA.md                    # Infrastructure & deployment
+├── MILESTONES.md               # Delivery plan
+├── LOGO.md                     # Logo specification
+│
+├── docs/                       # Additional implementation docs
+│   └── adr/                    # Architecture Decision Records
+│
+├── src/                        # Source code (implementation)
+│   ├── app/                    # FastAPI application
+│   │   ├── routers/            # Route handlers
+│   │   ├── services/           # Business logic
+│   │   ├── models/             # Pydantic schemas
+│   │   ├── ws/                 # WebSocket management
+│   │   ├── templates/          # Jinja2 HTML templates
+│   │   └── static/             # CSS, JS, images, sounds
+│   ├── mongo/                  # MongoDB init scripts
+│   ├── nginx/                  # NGINX config
+│   └── tests/                  # Test suite
+│
+├── assets/                     # Design assets
+│   ├── logo/                   # SVG logo, favicon, icons
+│   └── og-images/              # Social sharing images
+│
+└── scripts/                    # Ops scripts (backup, deploy, seed)
+```
+
+Each directory contains a `README.md` explaining what belongs there and which spec document to follow.
+
+## Domain
+
+**Production URL:** [https://kriegspiel.org](https://kriegspiel.org)
+
+The domain is owned by the project. See [INFRA.md](./INFRA.md) for DNS, TLS, and deployment configuration.
 
 ## Key Design Decisions
 
