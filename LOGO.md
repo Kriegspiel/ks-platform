@@ -34,15 +34,16 @@ Double-headed Staunton knight — two chess knight profiles facing away from eac
 - Maintain padding equal to ≥ 25% of mark width on all sides
 
 ### Theme Switching (CSS)
+
+Uses the `data-theme` attribute (consistent with [DESIGN.md](./DESIGN.md)):
+
 ```css
 .logo {
-  content: url('/static/logo-light.png');
+  content: url('/static/img/logo-light.png');
 }
 
-@media (prefers-color-scheme: dark) {
-  .logo {
-    content: url('/static/logo-dark.png');
-  }
+[data-theme="dark"] .logo {
+  content: url('/static/img/logo-dark.png');
 }
 ```
 
@@ -53,8 +54,29 @@ Double-headed Staunton knight — two chess knight profiles facing away from eac
 - Do not place on busy or patterned backgrounds
 - Do not add text inside or overlapping the mark
 
-## SVG (Future)
-An SVG version should be traced from these PNGs for resolution independence and CSS fill control. The SVG should use a single `<path>` with `fill: currentColor` so the site's CSS custom properties handle theme switching automatically.
+## SVG (Phase 1 Priority)
+
+An SVG version should be traced from these PNGs for resolution independence and CSS fill control. This is a **Phase 1 priority** because the design system relies on `fill: currentColor` for seamless theme switching, and PNG swapping via CSS `content` property only works on replaced elements.
+
+The SVG should use a single `<path>` with `fill: currentColor` so the site's CSS custom properties handle theme switching automatically.
+
+## Favicon Specification
+
+The following favicon files are needed for `base.html`:
+
+| File | Format | Size | Purpose |
+|---|---|---|---|
+| `favicon.ico` | ICO | 32x32 | Browser tab icon |
+| `favicon-192.png` | PNG | 192x192 | Android home screen |
+| `apple-touch-icon.png` | PNG | 180x180 | iOS home screen |
+
+Include these `<link>` tags in `base.html`:
+
+```html
+<link rel="icon" href="/static/img/favicon.ico" sizes="32x32">
+<link rel="icon" href="/static/img/favicon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png">
+```
 
 ## File Manifest
 ```

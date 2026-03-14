@@ -2,7 +2,18 @@
 
 ## Phase 1: Foundation (MVP)
 
-**Goal:** Two players can create a game, join via code, and play Kriegspiel (Berkeley + Any) to completion through a web browser.
+**Goal:** Two players can create a game, join via code, and play Kriegspiel (Berkeley + Any) with a **Rapid 25+10** Fischer clock to completion through a web browser.
+
+### Milestone 0 — Design System
+
+| Task | Details | Acceptance Criteria |
+|---|---|---|
+| Create `kriegspiel.css` | Implement [DESIGN.md](./DESIGN.md) as a single CSS file | All CSS custom properties defined; all component classes implemented |
+| Light/dark theme | `[data-theme="dark"]` toggles all colors | Both themes render correctly; toggle via logo click works |
+| Responsive breakpoints | Desktop / tablet / mobile layouts | Container width, game layout, and mobile stacking verified at all breakpoints |
+| Font loading | Google Fonts: Playfair Display, Inter, JetBrains Mono | Fonts load with `font-display: swap`; correct weights used |
+
+**Testing:** Visual inspection at all breakpoints. Both themes. All component classes render correctly.
 
 ### Milestone 1.1 — Project Scaffold
 
@@ -99,6 +110,8 @@ ks-platform/
 | Session middleware | Check cookie on every request | Protected routes return 401 without valid session |
 | Login/register pages | Jinja2 forms | Forms render, submit, show validation errors |
 
+**Testing:** Unit tests for `UserService` (registration validation, password hashing, login). Integration tests for `/auth/*` endpoints. Minimum 80% coverage for `services/user_service.py`.
+
 ### Milestone 1.3 — Game Lifecycle (REST)
 
 | Task | Details | Acceptance Criteria |
@@ -107,6 +120,8 @@ ks-platform/
 | Join game | `POST /api/game/join/{code}` | Second player added; state → active |
 | List open games | `GET /api/game/open` | Returns games with state=waiting |
 | Lobby page | Jinja2 + HTMX | Create form, join form, open games list (auto-refreshing) |
+
+**Testing:** Unit tests for `GameService` (create, join, state transitions). Integration tests for `/api/game/*` endpoints. Minimum 80% coverage for `services/game_service.py`.
 
 ### Milestone 1.4 — Gameplay (WebSocket)
 
@@ -119,8 +134,11 @@ ks-platform/
 | Check/capture | Engine announcements | Both players see capture square and check direction |
 | Game over | Checkmate/stalemate/draw | Both players notified; full board revealed; stats updated |
 | Resign | `{"action": "resign"}` | Game ends; opponent wins; both notified |
-| Reconnection | Player reconnects after disconnect | Game state restored from cache/DB; player resumes |
-| Game page | `game.html` + `game.js` | Board renders; drag-and-drop works; referee panel updates |
+| Reconnection | Player reconnects after disconnect | Exponential backoff (1s-30s, 10 attempts); game state fully restored; opponent notified; phantom pieces restored from localStorage |
+| Phantom pieces | Client-side opponent piece tracking | PhantomManager class works; pieces draggable from tray to board; stored in localStorage; visual distinction (50% opacity, dashed outline) |
+| Pawn promotion | Promotion piece selector modal | When pawn reaches last rank, modal appears with Q/R/B/N; selected piece appended to UCI; promotion executes correctly |
+| Time control | Fischer clock (25+10 rapid) | Countdown displayed for both players; flag on timeout; clock pauses on disconnect |
+| Game page | `game.html` + `game.js` | Board renders; drag-and-drop works; referee panel updates; phantom tray visible; clock displays |
 
 ### Milestone 1.5 — Polish & Deploy
 
@@ -144,7 +162,7 @@ ks-platform/
 
 | Feature | Details |
 |---|---|
-| **Time controls** | Fischer clock (base + increment); countdown displayed; flag on timeout |
+| **Additional time controls** | Blitz (5+3), Classical (45+15) — extends the rapid (25+10) from Phase 1 |
 | **ELO system** | Standard ELO calculation after each rated game; separate rated/casual queues |
 | **OAuth login** | Google sign-in via `authlib` |
 | **Draw offers** | In-game draw offer/accept/decline |

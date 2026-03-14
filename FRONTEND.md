@@ -12,11 +12,13 @@ Server-rendered pages with minimal JavaScript. The owner reads Python, not TypeS
 | Dynamic updates | **HTMX 2.x** | Lobby refresh, partial page updates without full reload |
 | Chess board | **chessboard.js 1.0** | Drag-and-drop board UI, piece rendering |
 | Chess validation | **chess.js** | Client-side move format validation (UCI generation) |
-| Styling | **Pico CSS** or **Simple.css** | Classless CSS framework — clean defaults, minimal markup |
+| Styling | **Custom `kriegspiel.css`** | Design system from [DESIGN.md](./DESIGN.md) — no CSS framework |
 | Icons | **Lucide** | Lightweight icon set |
 | WebSocket | **Native browser API** | Game communication |
 
 Total JS payload: < 100 KB gzipped.
+
+> **Note:** [DESIGN.md](./DESIGN.md) is authoritative for all visual and styling decisions. Any styling mentions in this document are informational — if they conflict with DESIGN.md, DESIGN.md wins.
 
 ## Page Map
 
@@ -62,7 +64,7 @@ Total JS payload: < 100 KB gzipped.
 
 - If logged in: "Play Now" goes to `/lobby`
 - If not logged in: "Play Now" goes to `/auth/login`
-- Recent games list: HTMX partial, auto-refreshes every 30s
+- Recent games list: `<div id="recent-games" hx-get="/api/game/recent" hx-trigger="load, every 30s" hx-swap="innerHTML">`
 
 ### Lobby (`/lobby`)
 
@@ -95,8 +97,10 @@ Total JS payload: < 100 KB gzipped.
 └─────────────────────────────────────────┘
 ```
 
-- "Open Games" list uses `hx-get="/api/game/open" hx-trigger="every 5s"` for live updates
-- "My Active Games" shows games where user is a participant and state is "active" or "paused"
+- "Open Games" list: `<div id="open-games" hx-get="/api/game/open" hx-trigger="every 5s" hx-swap="innerHTML" hx-target="#open-games">`
+- "My Active Games": `<div id="my-games" hx-get="/api/game/mine" hx-trigger="every 10s" hx-swap="innerHTML">`
+- "Join by Code" form: `<form hx-post="/api/game/join/{code}" hx-target="#join-result" hx-swap="innerHTML">`
+- Shows games where user is a participant and state is "active" or "paused"
 
 ### Game (`/game/{game_id}`)
 
@@ -118,6 +122,10 @@ This is the core gameplay screen.
 │       └─────────────────         │  ─── Actions ────────── │
 │         a b c d e f g h          │  [ Ask "Any?" ]          │
 │                                  │  [ Resign ]              │
+│                                  │  ─── Clock ──────────── │
+│                                  │  White: 24:58            │
+│                                  │  Black: 25:00  ●         │
+│                                  │                          │
 │  opponent1 ● connected           │                          │
 │                                  │  ─── Captured ────────── │
 │                                  │  You lost: ♟             │
@@ -152,6 +160,157 @@ This is the core gameplay screen.
 - Opponent connection status (green dot = connected, gray = disconnected)
 - Turn indicator (whose turn, visually emphasized)
 - Move counter
+
+### Phantom Pieces (Opponent Tracking)
+
+Since players cannot see their opponent's pieces, the UI provides a set of **phantom pieces** — opponent-colored pieces that the player can freely place, move, and remove on the board as personal memory aids for tracking where they believe opponent pieces are.
+
+Phantom pieces are **entirely client-side**. They are never sent to the server and never affect the game state.
+
+#### Behavior
+
+- On game start, a **phantom tray** appears below the board containing 16 opponent-colored pieces: 1 King, 1 Queen, 2 Rooks, 2 Bishops, 2 Knights, 8 Pawns.
+- **Place**: Player drags a phantom piece from the tray onto any empty board square.
+- **Move**: Player drags an existing phantom piece on the board to a different square.
+- **Remove**: Player right-clicks (desktop) or long-presses (mobile) a phantom piece to return it to the tray.
+- Phantom pieces are rendered at **50% opacity** with a **dashed outline** to visually distinguish them from the player's real pieces.
+- Phantom pieces do **not** block or interact with real piece movement. The player can place a real piece on a square that has a phantom — the phantom is automatically returned to the tray.
+- When a capture is announced ("Capture on d4"), the player may choose to remove a phantom from that square (manual, not automatic — the player decides which piece they think was captured).
+
+#### Storage
+
+- Phantom positions are stored in `localStorage` keyed by game ID.
+- Key: `phantoms_{game_id}` → JSON array of `{"piece": "bQ", "square": "d8"}`.
+- On page reload or WebSocket reconnect, phantom positions are restored from `localStorage`.
+- On game end, phantom data is cleared from `localStorage`.
+
+#### UI Layout
+
+```
+┌──────────────────────────────────────┐
+│          Chessboard                   │
+│       (player's real pieces)          │
+│                                       │
+│   (phantom pieces shown at 50%        │
+│    opacity with dashed outline)       │
+│                                       │
+├──────────────────────────────────────┤
+│  Phantom Tray                         │
+│  ♚ ♛ ♜ ♜ ♝ ♝ ♞ ♞ ♟♟♟♟♟♟♟♟          │
+│  (pieces not yet placed on board)     │
+└──────────────────────────────────────┘
+```
+
+- The tray uses `--bg-subtle` background, `--border-default` border, 8px padding.
+- Tray pieces are 32px, shown at 50% opacity, with `cursor: grab`.
+- See [DESIGN.md](./DESIGN.md) for exact CSS classes (`.phantom-piece`, `.phantom-tray`).
+
+#### Implementation (game.js — PhantomManager class, ~80 lines)
+
+```javascript
+class PhantomManager {
+    constructor(gameId, opponentColor) {
+        this.gameId = gameId;
+        this.color = opponentColor;      // "b" or "w"
+        this.placed = new Map();         // square -> piece (e.g., "d8" -> "bQ")
+        this.tray = [];                  // pieces not on the board
+        this._loadFromStorage();
+    }
+
+    place(piece, square) {
+        // Move piece from tray to board
+        this.tray = this.tray.filter(p => p !== piece);
+        this.placed.set(square, piece);
+        this._save();
+    }
+
+    move(fromSquare, toSquare) {
+        const piece = this.placed.get(fromSquare);
+        if (!piece) return;
+        this.placed.delete(fromSquare);
+        this.placed.set(toSquare, piece);
+        this._save();
+    }
+
+    remove(square) {
+        const piece = this.placed.get(square);
+        if (!piece) return;
+        this.placed.delete(square);
+        this.tray.push(piece);
+        this._save();
+    }
+
+    displace(square) {
+        // Called when a real piece lands on a phantom's square
+        this.remove(square);
+    }
+
+    clear() {
+        this.placed.clear();
+        this.tray = [];
+        localStorage.removeItem(`phantoms_${this.gameId}`);
+    }
+
+    render(boardElement) {
+        // Overlay phantom pieces onto chessboard.js board using
+        // absolutely-positioned elements at 50% opacity.
+        // Implementation depends on chessboard.js API.
+    }
+
+    _save() {
+        const data = [];
+        for (const [square, piece] of this.placed) {
+            data.push({ piece, square });
+        }
+        localStorage.setItem(`phantoms_${this.gameId}`, JSON.stringify({
+            placed: data,
+            tray: this.tray
+        }));
+    }
+
+    _loadFromStorage() {
+        const raw = localStorage.getItem(`phantoms_${this.gameId}`);
+        if (raw) {
+            const data = JSON.parse(raw);
+            data.placed.forEach(({ piece, square }) => this.placed.set(square, piece));
+            this.tray = data.tray;
+        } else {
+            this._initTray();
+        }
+    }
+
+    _initTray() {
+        // Full set of opponent pieces
+        const c = this.color;
+        this.tray = [
+            `${c}K`, `${c}Q`, `${c}R`, `${c}R`,
+            `${c}B`, `${c}B`, `${c}N`, `${c}N`,
+            `${c}P`, `${c}P`, `${c}P`, `${c}P`,
+            `${c}P`, `${c}P`, `${c}P`, `${c}P`
+        ];
+    }
+}
+```
+
+### Pawn Promotion
+
+When a pawn is dragged to the promotion rank (rank 8 for white, rank 1 for black):
+
+1. A **promotion modal** appears centered over the board with 4 piece icons: Queen, Rook, Bishop, Knight.
+2. Player clicks a piece to select the promotion. The move is then sent with the UCI promotion suffix (e.g., `"e7e8q"`, `"e7e8r"`, `"e7e8b"`, `"e7e8n"`).
+3. If the player clicks outside the modal, the move is cancelled and the pawn returns to its source square.
+4. The modal uses [DESIGN.md](./DESIGN.md) `.promotion-modal` styling.
+
+```
+┌─────────────────────────────┐
+│     Choose promotion:       │
+│                             │
+│    ♛    ♜    ♝    ♞        │
+│                             │
+└─────────────────────────────┘
+```
+
+Per Berkeley rules, pawn promotion is **silent** — the referee says nothing special about it beyond the normal move result ("Yes" or "No"). The opponent does not know a promotion occurred.
 
 ### Game Review (`/game/{game_id}/review`)
 
@@ -200,7 +359,7 @@ Post-game analysis page. Available after game ends.
 
 ## WebSocket Client (game.js)
 
-The only significant JavaScript in the project. Approximately 150-200 lines.
+The primary JavaScript in the project. Approximately **270 lines** (including PhantomManager).
 
 ```javascript
 /**
@@ -295,6 +454,120 @@ class KriegspielClient {
     }
 
     // ... board rendering, referee log, reconnection logic
+
+    initBoard(msg) {
+        // Configure chessboard.js
+        this.board = Chessboard('board', {
+            position: msg.your_fen,
+            orientation: this.color,
+            draggable: true,
+            onDrop: (source, target, piece) => this.sendMove(source, target, piece),
+            pieceTheme: '/static/img/pieces/{piece}.svg'
+        });
+
+        // Initialize phantom pieces for opponent tracking
+        const opponentColor = this.color === 'white' ? 'b' : 'w';
+        this.phantoms = new PhantomManager(this.gameId, opponentColor);
+        this.phantoms.render(document.getElementById('board'));
+    }
+}
+
+// PhantomManager class defined in the Phantom Pieces section above
+```
+
+### game.js Line Budget
+
+| Concern | Lines |
+|---|---|
+| WebSocket lifecycle (connect, close, reconnect) | ~40 |
+| Message handling (handleMessage, all cases) | ~60 |
+| Board interaction (chessboard.js callbacks, promotion) | ~40 |
+| Referee panel rendering | ~30 |
+| PhantomManager class | ~80 |
+| Reconnection logic (exponential backoff) | ~20 |
+| **Total** | **~270** |
+
+## Post-Game Replay (review.js)
+
+The game review page (`/game/{game_id}/review`) uses a separate JavaScript file. Approximately **120 lines**.
+
+```javascript
+class GameReview {
+    constructor(gameId) {
+        this.gameId = gameId;
+        this.moves = [];           // Loaded from API
+        this.currentPly = 0;
+        this.perspective = 'referee';  // "referee" | "white" | "black"
+        this.board = null;
+    }
+
+    async load() {
+        // Fetch full move transcript
+        const resp = await fetch(`/api/game/${this.gameId}/moves`);
+        const data = await resp.json();
+        this.moves = data.moves;
+        this.initBoard();
+        this.bindControls();
+    }
+
+    initBoard() {
+        this.board = Chessboard('review-board', {
+            position: 'start',
+            draggable: false,
+            pieceTheme: '/static/img/pieces/{piece}.svg'
+        });
+    }
+
+    bindControls() {
+        // Arrow keys: Left = previous, Right = next
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') this.prev();
+            if (e.key === 'ArrowRight') this.next();
+        });
+
+        // Step buttons
+        document.getElementById('btn-prev')?.addEventListener('click', () => this.prev());
+        document.getElementById('btn-next')?.addEventListener('click', () => this.next());
+
+        // Perspective radio buttons
+        document.querySelectorAll('input[name="perspective"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.perspective = e.target.value;
+                this.renderAtCurrentPly();
+            });
+        });
+
+        // Click move in log to jump
+        document.querySelectorAll('.move-entry').forEach((el, idx) => {
+            el.addEventListener('click', () => this.goTo(idx));
+        });
+    }
+
+    next() {
+        if (this.currentPly < this.moves.length) {
+            this.currentPly++;
+            this.renderAtCurrentPly();
+        }
+    }
+
+    prev() {
+        if (this.currentPly > 0) {
+            this.currentPly--;
+            this.renderAtCurrentPly();
+        }
+    }
+
+    goTo(ply) {
+        this.currentPly = ply;
+        this.renderAtCurrentPly();
+    }
+
+    renderAtCurrentPly() {
+        // Rebuild board state by replaying moves up to currentPly
+        // Use perspective to filter: "referee" = full FEN,
+        // "white"/"black" = filter opponent pieces from FEN client-side
+        // Highlight current move in the move log
+    }
 }
 ```
 

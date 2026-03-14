@@ -106,7 +106,8 @@ Create a new game and get a join code.
 ```json
 {
   "rule_variant": "berkeley_any",    // "berkeley" | "berkeley_any" (default)
-  "play_as": "white"                 // "white" | "black" | "random" (default)
+  "play_as": "white",               // "white" | "black" | "random" (default)
+  "time_control": "rapid"           // "rapid" (25+10) — only option in Phase 1
 }
 ```
 
@@ -351,11 +352,17 @@ On connect, server validates token, determines player color, and sends:
   "type": "connected",
   "game_id": "664b2c...",
   "your_color": "white",
-  "your_fen": "RNBQKBNR/PPPPPPPP/8/8/8/8/8/8",
+  "your_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   "turn": "white",
   "move_number": 1,
+  "referee_log": [],
   "opponent_connected": true,
-  "possible_actions": ["move", "ask_any"]
+  "possible_actions": ["move", "ask_any"],
+  "clock": {
+    "white_remaining": 1500.0,
+    "black_remaining": 1500.0,
+    "active_color": "white"
+  }
 }
 ```
 
@@ -405,9 +412,14 @@ On connect, server validates token, determines player color, and sends:
     "check_2": null
   },
   "move_done": true,
-  "your_fen": "RNBQKBNR/PPPP1PPP/8/4P3/8/8/8/8",
+  "your_fen": "8/8/8/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1",
   "turn": "black",
-  "possible_actions": []
+  "possible_actions": [],
+  "clock": {
+    "white_remaining": 1498.5,
+    "black_remaining": 1500.0,
+    "active_color": "black"
+  }
 }
 ```
 
@@ -415,15 +427,21 @@ On connect, server validates token, determines player color, and sends:
 ```json
 {
   "type": "opponent_moved",
+  "illegal_attempts_this_turn": 3,
   "announcement": {
     "capture_square": null,
     "special": "NONE",
     "check_1": null,
     "check_2": null
   },
-  "your_fen": "rnbqkbnr/pppppppp/8/8/8/8/8/8",
+  "your_fen": "rnbqkbnr/pppppppp/8/8/8/8/8/8 b KQkq - 0 1",
   "turn": "black",
-  "possible_actions": ["move", "ask_any"]
+  "possible_actions": ["move", "ask_any"],
+  "clock": {
+    "white_remaining": 1498.5,
+    "black_remaining": 1500.0,
+    "active_color": "black"
+  }
 }
 ```
 
@@ -497,6 +515,166 @@ After game ends, the full board is revealed to both players.
 ```
 
 Error codes: `NOT_YOUR_TURN`, `INVALID_MOVE_FORMAT`, `GAME_NOT_ACTIVE`, `SESSION_EXPIRED`
+
+### WebSocket Close Codes
+
+| Code | Meaning |
+|---|---|
+| 1000 | Normal close (game ended) |
+| 1008 | Policy violation (authentication failed) |
+| 4001 | Session expired during gameplay |
+| 4002 | Not a participant in this game |
+| 4003 | Game not in active/paused state |
+
+---
+
+## Standardized Error Response
+
+All REST endpoints return errors in this format:
+
+```json
+{
+  "error": {
+    "code": "GAME_NOT_FOUND",
+    "message": "No game with code 'XYZ123' exists.",
+    "details": {}
+  }
+}
+```
+
+### Error Code Catalog
+
+| Code | HTTP Status | Endpoint(s) | Description |
+|---|---|---|---|
+| `USERNAME_TAKEN` | 409 | POST /auth/register | Username already exists |
+| `EMAIL_TAKEN` | 409 | POST /auth/register | Email already registered |
+| `VALIDATION_ERROR` | 422 | POST /auth/register | Field validation failed (details in `details`) |
+| `INVALID_CREDENTIALS` | 401 | POST /auth/login | Wrong username or password |
+| `RATE_LIMITED` | 429 | POST /auth/login, /auth/register | Too many requests |
+| `NOT_AUTHENTICATED` | 401 | All protected endpoints | No valid session or token |
+| `FORBIDDEN` | 403 | Admin endpoints | User lacks required role |
+| `GAME_NOT_FOUND` | 404 | /api/game/* | Game code or ID does not exist |
+| `GAME_FULL` | 409 | POST /api/game/join | Game already has two players |
+| `CANNOT_JOIN_OWN_GAME` | 409 | POST /api/game/join | Player trying to join their own game |
+| `GAME_NOT_ACTIVE` | 400 | POST /api/game/resign, WS | Game is not in active state |
+| `NOT_YOUR_TURN` | 400 | WS move/ask_any | Not this player's turn |
+| `INVALID_MOVE_FORMAT` | 400 | WS move | UCI string is malformed |
+| `USER_NOT_FOUND` | 404 | /api/user/* | Username does not exist |
+
+---
+
+## Pagination
+
+All paginated endpoints accept these query parameters:
+
+| Param | Default | Max | Description |
+|---|---|---|---|
+| `page` | 1 | — | Page number (1-indexed) |
+| `per_page` | 20 | 100 | Items per page |
+
+Paginated responses always include:
+
+```json
+{
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total": 47,
+    "pages": 3
+  }
+}
+```
+
+Out-of-range pages return empty data arrays with correct `pagination.total`.
+
+---
+
+## Phantom Pieces (Opponent Tracking)
+
+Phantom pieces are **entirely client-side**. No API endpoints exist for storing, retrieving, or validating phantom piece positions. The server never receives phantom data. See [FRONTEND.md](./FRONTEND.md) for the client-side implementation.
+
+---
+
+## Pydantic Request/Response Models
+
+These models define the exact API contracts. Use them in `models/auth.py` and `models/game.py`.
+
+```python
+# models/auth.py
+from pydantic import BaseModel, Field
+from typing import Literal
+
+
+class RegisterRequest(BaseModel):
+    username: str = Field(min_length=3, max_length=20, pattern=r"^[a-zA-Z0-9_]+$")
+    email: str | None = None
+    password: str = Field(min_length=8, max_length=72)
+
+
+class RegisterResponse(BaseModel):
+    user_id: str
+    username: str
+    message: str = "Account created. You are now logged in."
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class LoginResponse(BaseModel):
+    user_id: str
+    username: str
+```
+
+```python
+# models/game.py (API schemas — see also DATA_MODEL.md for DB schemas)
+from pydantic import BaseModel
+from typing import Literal
+from datetime import datetime
+
+
+class CreateGameRequest(BaseModel):
+    rule_variant: Literal["berkeley", "berkeley_any"] = "berkeley_any"
+    play_as: Literal["white", "black", "random"] = "random"
+    time_control: Literal["rapid"] = "rapid"  # 25+10 — only option in Phase 1
+
+
+class CreateGameResponse(BaseModel):
+    game_id: str
+    game_code: str
+    play_as: Literal["white", "black"]
+    rule_variant: str
+    state: str = "waiting"
+    join_url: str
+
+
+class JoinGameResponse(BaseModel):
+    game_id: str
+    game_code: str
+    play_as: Literal["white", "black"]
+    rule_variant: str
+    state: str = "active"
+    game_url: str
+
+
+class OpenGameItem(BaseModel):
+    game_code: str
+    rule_variant: str
+    created_by: str
+    created_at: datetime
+    available_color: Literal["white", "black"]
+
+
+class GameHistoryItem(BaseModel):
+    game_id: str
+    opponent: str
+    play_as: Literal["white", "black"]
+    result: Literal["win", "loss", "draw"]
+    reason: str
+    move_count: int
+    played_at: datetime
+```
 
 ---
 

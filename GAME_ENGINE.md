@@ -196,6 +196,10 @@ class GameService:
 
         The opponent's pieces are replaced with empty squares.
         This is what each player sees on their board.
+
+        NOTE: game._board is a private attribute of BerkeleyGame. We access it
+        intentionally because the engine does not expose a public board accessor.
+        If the kriegspiel package adds a public API for this in the future, migrate to it.
         """
         board = game._board.copy()
 
@@ -298,13 +302,14 @@ class GameService:
     # ── Helpers ───────────────────────────────────────────────
 
     def _build_move_record(
-        self, color: str, question_type: str, uci: str | None, answer: KriegspielAnswer
+        self, color: str, question_type: str, uci: str | None, answer: KriegspielAnswer, ply_number: int
     ) -> dict:
         capture_square = None
         if answer.capture_at_square is not None:
             capture_square = chess.square_name(answer.capture_at_square)
 
         return {
+            "ply": ply_number,   # Caller must pass: len(game_doc["moves"]) + 1
             "color": color,
             "question_type": question_type,
             "uci": uci,
@@ -351,6 +356,241 @@ class GameService:
             return random.choice(["white", "black"])
         return play_as
 ```
+
+    # ── Resign ─────────────────────────────────────────────────
+
+    async def resign(self, game_id: str, color: str) -> dict:
+        """Player resigns. Opponent wins."""
+        winner = "black" if color == "white" else "white"
+        await self._end_game(game_id, winner=winner, reason="resignation")
+        return {"winner": winner, "reason": "resignation"}
+
+    # ── Abandon ────────────────────────────────────────────────
+
+    async def handle_abandon(self, game_id: str, disconnected_color: str) -> dict:
+        """Called when disconnected player doesn't return within 15 minutes."""
+        winner = "black" if disconnected_color == "white" else "white"
+        await self._end_game(game_id, winner=winner, reason="abandonment")
+        return {"winner": winner, "reason": "abandonment"}
+
+    # ── End Game ───────────────────────────────────────────────
+
+    async def _end_game(
+        self,
+        game_id: str,
+        winner: str | None,          # None for draws
+        reason: str,
+    ):
+        """
+        Full game-ending flow:
+        1. Update game state to "completed" with result.
+        2. Update both users' stats (games_played, wins/losses/draws, ELO).
+        3. Move game document from `games` to `game_archives`.
+        4. Evict game from in-memory cache.
+        5. Write to audit_log.
+        """
+        now = datetime.now(timezone.utc)
+
+        # 1. Update game document
+        game_doc = await self.db.games.find_one_and_update(
+            {"_id": game_id},
+            {"$set": {
+                "state": "completed",
+                "result": {
+                    "winner": winner,
+                    "reason": reason,
+                    "ended_at": now,
+                },
+                "updated_at": now,
+            }},
+            return_document=True,
+        )
+
+        # 2. Update user stats
+        white_uid = game_doc["white"]["user_id"]
+        black_uid = game_doc["black"]["user_id"]
+
+        if winner == "white":
+            await self.db.users.update_one({"_id": white_uid}, {"$inc": {"stats.games_played": 1, "stats.games_won": 1}})
+            await self.db.users.update_one({"_id": black_uid}, {"$inc": {"stats.games_played": 1, "stats.games_lost": 1}})
+        elif winner == "black":
+            await self.db.users.update_one({"_id": black_uid}, {"$inc": {"stats.games_played": 1, "stats.games_won": 1}})
+            await self.db.users.update_one({"_id": white_uid}, {"$inc": {"stats.games_played": 1, "stats.games_lost": 1}})
+        else:
+            # Draw
+            await self.db.users.update_one({"_id": white_uid}, {"$inc": {"stats.games_played": 1, "stats.games_drawn": 1}})
+            await self.db.users.update_one({"_id": black_uid}, {"$inc": {"stats.games_played": 1, "stats.games_drawn": 1}})
+
+        # 3. Archive: copy to game_archives, delete from games
+        await self.db.game_archives.insert_one(game_doc)
+        await self.db.games.delete_one({"_id": game_id})
+
+        # 4. Evict from cache
+        await self.cache.evict(game_id)
+
+        # 5. Audit log
+        await self.db.audit_log.insert_one({
+            "event": "game.ended",
+            "game_id": game_id,
+            "details": {"winner": winner, "reason": reason},
+            "timestamp": now,
+        })
+```
+
+## Time Control (Fischer Clock)
+
+Phase 1 implements a single time control: **Rapid 25+10** (25 minutes base + 10 seconds increment per move).
+
+The clock is managed **server-side** to prevent cheating. The `kriegspiel` engine does not handle time — the platform manages it independently.
+
+```python
+class ClockManager:
+    """Fischer clock for a single game. Server-side, authoritative."""
+
+    def __init__(self, base_seconds: int = 1500, increment_seconds: int = 10):
+        self.base = base_seconds          # 25 minutes = 1500 seconds
+        self.increment = increment_seconds # 10 seconds
+        self.remaining = {"white": float(base_seconds), "black": float(base_seconds)}
+        self.active_color: str | None = None
+        self.last_tick: float | None = None  # time.monotonic()
+
+    def start(self, color: str):
+        """Start the clock for the given color (called when their turn begins)."""
+        self.active_color = color
+        self.last_tick = time.monotonic()
+
+    def stop_and_increment(self, color: str):
+        """
+        Stop the clock for the given color (they made a move).
+        Add increment. Called after a successful move (move_done=True).
+        """
+        if self.active_color == color and self.last_tick is not None:
+            elapsed = time.monotonic() - self.last_tick
+            self.remaining[color] -= elapsed
+            self.remaining[color] += self.increment
+            self.active_color = None
+            self.last_tick = None
+
+    def get_remaining(self, color: str) -> float:
+        """Get remaining time in seconds. Accounts for currently ticking time."""
+        remaining = self.remaining[color]
+        if self.active_color == color and self.last_tick is not None:
+            elapsed = time.monotonic() - self.last_tick
+            remaining -= elapsed
+        return max(0, remaining)
+
+    def is_flagged(self, color: str) -> bool:
+        """Check if a player has run out of time."""
+        return self.get_remaining(color) <= 0
+
+    def pause(self):
+        """Pause the clock (e.g., opponent disconnects)."""
+        if self.active_color and self.last_tick:
+            elapsed = time.monotonic() - self.last_tick
+            self.remaining[self.active_color] -= elapsed
+            self.last_tick = None
+
+    def resume(self):
+        """Resume the clock after pause."""
+        if self.active_color:
+            self.last_tick = time.monotonic()
+
+    def to_dict(self) -> dict:
+        """Serialize for MongoDB storage and WebSocket messages."""
+        return {
+            "base": self.base,
+            "increment": self.increment,
+            "white_remaining": round(self.get_remaining("white"), 1),
+            "black_remaining": round(self.get_remaining("black"), 1),
+            "active_color": self.active_color,
+        }
+```
+
+### Clock Integration with GameService
+
+- On game start (both players connected): `clock.start("white")`.
+- After each successful move (`move_done=True`): `clock.stop_and_increment(moving_color)` then `clock.start(opponent_color)`.
+- On player disconnect: `clock.pause()`.
+- On player reconnect: `clock.resume()`.
+- **Flag check**: after every move and on a 1-second server-side timer, check `clock.is_flagged()`. If flagged, the game ends with the opponent winning.
+- Clock state is included in every WebSocket message to both players (see [API_SPEC.md](./API_SPEC.md)).
+- Clock state is serialized to MongoDB alongside `engine_state` on every move.
+
+### WebSocket Clock Messages
+
+Clock remaining times are sent with every `move_result` and `opponent_moved` message:
+
+```json
+{
+  "clock": {
+    "white_remaining": 1423.5,
+    "black_remaining": 1500.0,
+    "active_color": "black"
+  }
+}
+```
+
+When a player flags (runs out of time):
+
+```json
+{
+  "type": "game_over",
+  "result": {
+    "winner": "black",
+    "reason": "timeout",
+    "special": "FLAG"
+  },
+  "clock": { "white_remaining": 0, "black_remaining": 892.3, "active_color": null }
+}
+```
+
+## Pawn Promotion
+
+Pawn promotion is handled via the UCI move format. When a pawn reaches the last rank, the client appends a promotion suffix to the UCI string:
+
+| UCI | Meaning |
+|---|---|
+| `e7e8q` | Promote to Queen |
+| `e7e8r` | Promote to Rook |
+| `e7e8b` | Promote to Bishop |
+| `e7e8n` | Promote to Knight |
+
+- If the client sends a promotion move without a suffix (e.g., `e7e8`), the server defaults to Queen promotion by appending `q`.
+- Promotion is **silent** per Berkeley rules — the referee says nothing special about it beyond the normal move result ("Yes"/"No"). The opponent does not know a promotion occurred.
+- The `chess.Move.from_uci()` function handles the promotion suffix natively.
+- See [FRONTEND.md](./FRONTEND.md) for the promotion piece selector modal UI.
+
+## En Passant
+
+En passant is handled entirely by the `kriegspiel` engine. No special platform logic is needed.
+
+- The move UCI looks like a regular pawn move (e.g., `d5e6`) where the target square is empty.
+- The referee announces **"Capture on e6"** (the target square where the capturing pawn lands, not the square of the captured pawn).
+- The captured pawn disappears from its original square. The `_player_fen` function reflects this correctly because it reads the engine's board state after the move.
+- En passant is **silent** per Berkeley rules — the referee says "Capture on [square]" but does not announce that it was en passant.
+
+## No Legal Moves (Checkmate / Stalemate)
+
+When a player has no legal moves, the engine detects this automatically:
+
+- If `game.possible_to_ask` returns an empty list and the player is **in check** → **checkmate**.
+- If `game.possible_to_ask` returns an empty list and the player is **not in check** → **stalemate**.
+- In both cases, `game.is_game_over()` returns `True` and `answer.special_announcement` contains the result (`CHECKMATE_WHITE_WINS`, `CHECKMATE_BLACK_WINS`, or `DRAW_STALEMATE`).
+- The `_get_possible_actions` method returns `[]`, and the WebSocket handler triggers the game-over flow.
+
+The platform does **not** need to implement checkmate/stalemate detection — it relies entirely on the engine.
+
+## Error Recovery
+
+If the game engine state becomes corrupted (e.g., `BerkeleyGame.load_game()` fails):
+
+1. Log the error with full context: `log.error("engine.state_corrupted", game_id=game_id, error=str(e))`.
+2. Send an error message to both connected players: `{"type": "error", "code": "ENGINE_STATE_CORRUPTED", "message": "Game state is corrupted. This game has been abandoned."}`.
+3. Mark the game as `abandoned` in the database (no winner).
+4. Write to `audit_log` with `event: "game.engine_corrupted"`.
+5. The raw `engine_state` JSON remains in the game document for admin debugging.
+
+This should be extremely rare in practice — the engine serialization is well-tested.
 
 ## Mapping: Engine Enums → User-Facing Messages
 

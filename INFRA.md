@@ -282,6 +282,40 @@ mongosh --eval '
 '
 ```
 
+## Python Dependencies
+
+### requirements.txt
+
+```
+# requirements.txt
+fastapi==0.115.*
+uvicorn[standard]==0.34.*
+motor==3.6.*
+pydantic==2.10.*
+pydantic-settings==2.7.*
+bcrypt==4.2.*
+python-jose[cryptography]==3.3.*
+kriegspiel>=1.1.2
+structlog==24.4.*
+jinja2==3.1.*
+python-multipart==0.0.*
+itsdangerous==2.2.*
+httpx==0.28.*
+```
+
+### requirements-dev.txt
+
+```
+# requirements-dev.txt
+-r requirements.txt
+pytest==8.3.*
+pytest-asyncio==0.24.*
+pytest-cov==6.0.*
+httpx==0.28.*
+black==24.10.*
+ruff==0.8.*
+```
+
 ## Environment Variables
 
 ```bash
@@ -441,6 +475,46 @@ docker cp ks-mongo:/tmp/kriegspiel_${DATE}.gz "${BACKUP_DIR}/"
 find ${BACKUP_DIR} -name "*.gz" -mtime +30 -delete
 ```
 
+## NGINX Configuration Notes
+
+The `limit_req_zone` and `limit_conn_zone` directives **must** be placed in the `http` block of `nginx/nginx.conf`, not inside `conf.d/kriegspiel.conf`. The server block in `kriegspiel.conf` only references the zones:
+
+```nginx
+# nginx/nginx.conf — add to the http block:
+http {
+    limit_req_zone $binary_remote_addr zone=api:10m rate=30r/s;
+    limit_req_zone $binary_remote_addr zone=auth:10m rate=5r/m;
+    limit_req_zone $binary_remote_addr zone=register:10m rate=3r/m;
+    limit_conn_zone $binary_remote_addr zone=ws_conn:10m;
+
+    include /etc/nginx/conf.d/*.conf;
+}
+```
+
+## .env.example
+
+This file should exist at the repository root:
+
+```bash
+# .env.example — Copy to .env and fill in values
+
+# App
+SECRET_KEY=change-me-to-random-64-char-string
+ENVIRONMENT=production          # "development" | "production"
+LOG_LEVEL=info                  # "debug" | "info" | "warning" | "error"
+
+# MongoDB
+MONGO_URI=mongodb://mongo:27017/kriegspiel?replicaSet=rs0
+
+# OAuth (Phase 2)
+# GOOGLE_CLIENT_ID=
+# GOOGLE_CLIENT_SECRET=
+
+# Mongo Express (dev only)
+ME_USERNAME=admin
+ME_PASSWORD=change-me
+```
+
 ## Local Development
 
 ```bash
@@ -461,4 +535,22 @@ cd app
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt -r requirements-dev.txt
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# ── Local MongoDB without Docker ──────────────────────────
+# macOS (Homebrew):
+brew tap mongodb/brew
+brew install mongodb-community@7.0
+brew services start mongodb-community@7.0
+
+# Initialize replica set (required for Change Streams):
+mongosh --eval 'rs.initiate({_id: "rs0", members: [{_id: 0, host: "localhost:27017"}]})'
+
+# Connection string for local dev:
+# MONGO_URI=mongodb://localhost:27017/kriegspiel?replicaSet=rs0
+
+# ── Environment for local dev ─────────────────────────────
+# Set ENVIRONMENT=development in .env — this enables:
+# - Debug logging
+# - CORS allows http://localhost:8000
+# - Detailed error responses (stack traces)
 ```

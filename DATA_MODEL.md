@@ -41,6 +41,8 @@ Stores player accounts and profile data.
     "auto_ask_any": false
   },
 
+  "role": "user",                  // "user" | "admin"
+
   "status": "active",
   "last_active_at": "ISODate",
   "created_at": "ISODate",
@@ -85,8 +87,8 @@ Stores active and recently completed games. This is the hot collection.
   "state": "waiting",
 
   "turn": "white",
-  "move_number": 12,
-  "half_move_count": 23,
+  "move_number": 12,                // Chess full-move counter (increments after Black moves)
+  "half_move_count": 23,            // Total ply counter (all successful moves, both colors)
 
   "engine_state": {
     "version": "1.2.0",
@@ -128,14 +130,20 @@ Stores active and recently completed games. This is the hot collection.
     "ended_at": "ISODate"
   },
 
-  "time_control": null,
+  "time_control": {
+    "base": 1500,                    // 25 minutes in seconds
+    "increment": 10,                 // 10 seconds per move
+    "white_remaining": 1423.5,       // Seconds remaining for white
+    "black_remaining": 1500.0,       // Seconds remaining for black
+    "active_color": "black"          // Whose clock is ticking (null if paused)
+  },
 
   "created_at": "ISODate",
   "updated_at": "ISODate"
 }
 ```
 
-State values: `waiting`, `active`, `paused`, `completed`, `abandoned`, `aborted`
+State values: `waiting`, `active`, `paused`, `completed`, `abandoned`, `aborted`. See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full state machine with transition triggers and timeout values.
 
 ### Indexes
 
@@ -239,6 +247,162 @@ db.sessions.createIndex({ "user_id": 1 })
    └─ Move document from `games` → `game_archives`
    └─ Write to `audit_log`
 ```
+
+---
+
+## Pydantic Models
+
+These models map directly to the MongoDB documents above. Use them in `models/game.py` and `models/user.py`.
+
+```python
+# models/game.py
+from pydantic import BaseModel, Field
+from datetime import datetime
+from typing import Literal
+
+
+class PlayerEmbed(BaseModel):
+    user_id: str | None = None
+    username: str | None = None
+    connected: bool = False
+    last_seen_at: datetime | None = None
+
+
+class MoveAnswer(BaseModel):
+    main: str                              # MainAnnouncement enum name
+    capture_square: str | None = None      # e.g., "d4"
+    special: str = "NONE"                  # SpecialCaseAnnouncement enum name
+    check_1: str | None = None
+    check_2: str | None = None
+
+
+class MoveRecord(BaseModel):
+    ply: int                               # 1-indexed sequential move counter
+    color: Literal["white", "black"]
+    question_type: Literal["COMMON", "ASK_ANY"]
+    uci: str | None = None                 # None for ASK_ANY
+    answer: MoveAnswer
+    move_done: bool
+    timestamp: datetime
+
+
+class GameResult(BaseModel):
+    winner: Literal["white", "black"] | None = None   # None for draws
+    reason: str                            # "checkmate", "stalemate", "resignation", "abandonment", etc.
+    ended_at: datetime
+
+
+class GameDocument(BaseModel):
+    game_code: str
+    rule_variant: Literal["berkeley", "berkeley_any"] = "berkeley_any"
+    white: PlayerEmbed
+    black: PlayerEmbed
+    state: Literal["waiting", "active", "paused", "completed", "abandoned", "aborted"]
+    turn: Literal["white", "black"] = "white"
+    move_number: int = 0                   # Chess full-move counter
+    half_move_count: int = 0               # Ply counter
+    engine_state: dict                     # Serialized BerkeleyGame (see GAME_ENGINE.md)
+    white_fen: str                         # FEN showing only white's pieces
+    black_fen: str                         # FEN showing only black's pieces
+    moves: list[MoveRecord] = []
+    result: GameResult | None = None
+    time_control: dict | None = None       # Phase 2
+    created_at: datetime
+    updated_at: datetime
+```
+
+```python
+# models/user.py
+from pydantic import BaseModel, Field
+from datetime import datetime
+from typing import Literal
+
+
+class UserStats(BaseModel):
+    games_played: int = 0
+    games_won: int = 0
+    games_lost: int = 0
+    games_drawn: int = 0
+    elo: int = 1200
+    elo_peak: int = 1200
+
+
+class UserSettings(BaseModel):
+    board_theme: str = "default"
+    piece_set: str = "cburnett"
+    sound_enabled: bool = True
+    auto_ask_any: bool = False
+
+
+class UserProfile(BaseModel):
+    bio: str = ""
+    avatar_url: str | None = None
+    country: str | None = None
+
+
+class UserDocument(BaseModel):
+    username: str                          # Lowercase, unique
+    username_display: str                  # Original case for display
+    email: str | None = None
+    password_hash: str
+    auth_providers: list[str] = ["local"]
+    profile: UserProfile = UserProfile()
+    stats: UserStats = UserStats()
+    settings: UserSettings = UserSettings()
+    role: Literal["user", "admin"] = "user"
+    status: Literal["active", "suspended", "deleted"] = "active"
+    last_active_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
+```
+
+---
+
+## Common MongoDB Query Patterns
+
+These are the exact queries the service layer should use. All queries use Motor's async API.
+
+```python
+# ── Open games (lobby) ─────────────────────────────────────────
+await db.games.find(
+    {"state": "waiting"}
+).sort("created_at", -1).to_list(50)
+
+# ── User's active games ───────────────────────────────────────
+await db.games.find({
+    "$or": [
+        {"white.user_id": user_id},
+        {"black.user_id": user_id}
+    ],
+    "state": {"$in": ["active", "paused"]}
+}).to_list(100)
+
+# ── Find game by join code ────────────────────────────────────
+await db.games.find_one({"game_code": game_code})
+
+# ── Leaderboard ───────────────────────────────────────────────
+await db.users.find(
+    {"status": "active", "stats.games_played": {"$gte": 5}}
+).sort("stats.elo", -1).skip(offset).limit(per_page).to_list(per_page)
+
+# ── User game history (paginated) ─────────────────────────────
+await db.game_archives.find({
+    "$or": [
+        {"white.user_id": user_id},
+        {"black.user_id": user_id}
+    ]
+}).sort("created_at", -1).skip(offset).limit(per_page).to_list(per_page)
+
+# ── Count for pagination ──────────────────────────────────────
+total = await db.game_archives.count_documents({
+    "$or": [
+        {"white.user_id": user_id},
+        {"black.user_id": user_id}
+    ]
+})
+```
+
+---
 
 ## Document Size Considerations
 

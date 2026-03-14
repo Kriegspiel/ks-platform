@@ -54,7 +54,7 @@
 
 ### 2. FastAPI Application
 
-Single FastAPI process running under **Uvicorn** with multiple workers.
+Single FastAPI process running under **Uvicorn** with **1 worker** (single async event loop). See [INFRA.md](./INFRA.md) for rationale.
 
 #### Routers (URL namespaces)
 
@@ -87,6 +87,43 @@ The `kriegspiel` PyPI package (`BerkeleyGame`) is used as-is. The platform wraps
 3. The answer is translated into a WebSocket message and sent to the appropriate player(s).
 4. After each move, the full game state is serialized (via `kriegspiel.serialization`) and persisted to MongoDB.
 5. On reconnect, the game is restored via `BerkeleyGame.load_game()` from the stored JSON.
+
+## Game State Machine
+
+Every game moves through a defined set of states. No other transitions are valid.
+
+```
+                    ┌─────────────────────────────────────────────────┐
+                    │                                                 │
+  create game       ▼            join game                            │
+  ──────────►  [ waiting ] ──────────────────► [ active ] ◄───────┐  │
+                    │                              │    │          │  │
+                    │ creator cancels               │    │ player   │  │
+                    │ or 24h TTL expires            │    │ reconnects│  │
+                    ▼                              │    │          │  │
+               [ aborted ]          no heartbeat   │    │          │  │
+                                    for 30s        ▼    │          │  │
+                                              [ paused ]──────────┘  │
+                                                   │                 │
+                    checkmate / stalemate /         │ 15 min timeout  │
+                    resign / draw                  │ (no reconnect)  │
+                    ──────────────────┐            ▼                 │
+                                      ▼       [ abandoned ]          │
+                                 [ completed ] ◄─────────────────────┘
+                                               (system awards win)
+```
+
+| Transition | Trigger | Timeout / Condition |
+|---|---|---|
+| `waiting → active` | Second player calls `POST /api/game/join/{code}` | — |
+| `waiting → aborted` | Creator cancels, or MongoDB TTL expires | 24 hours |
+| `active → paused` | Player disconnects (no WebSocket heartbeat pong) | 30 seconds without pong |
+| `paused → active` | Disconnected player reconnects via WebSocket | — |
+| `active → completed` | Checkmate, stalemate, insufficient material, resignation, draw agreement | — |
+| `paused → abandoned` | Disconnected player does not reconnect | 15 minutes |
+| `abandoned → completed` | System awards win to remaining player | Immediate (auto-transition) |
+
+State values: `waiting`, `active`, `paused`, `completed`, `abandoned`, `aborted`
 
 ### 3. MongoDB
 
@@ -122,6 +159,36 @@ class ConnectionManager:
         """Send a message to all participants (both players + spectators)."""
         ...
 ```
+
+### WebSocket Heartbeat Protocol
+
+The server maintains connection liveness via a ping/pong mechanism:
+
+1. Server sends `{"type": "ping"}` every **30 seconds** to each connected client.
+2. Client must respond with `{"type": "pong"}` within **10 seconds**.
+3. If no pong received within 10s, the server closes the WebSocket and marks the player as disconnected. The game transitions to `paused`.
+4. Client-side: if no message received from the server for **35 seconds**, the client assumes the connection is dead and initiates reconnection.
+
+### Reconnection Protocol
+
+When a player disconnects and reconnects:
+
+1. Client initiates a new WebSocket connection to `/ws/game/{game_id}?token={session_token}`.
+2. Server authenticates the token and verifies the player belongs to this game.
+3. Server sends a `connected` message with the **full current game state**:
+   - `your_fen`: current board from the player's perspective
+   - `turn`: whose turn it is
+   - `move_number`: current move number
+   - `referee_log`: last 20 referee announcements (so the player can see recent history)
+   - `possible_actions`: available actions if it's their turn
+   - `opponent_connected`: whether the opponent is still connected
+4. Server sends `{"type": "opponent_status", "connected": true}` to the other player.
+5. Game transitions from `paused` back to `active`.
+
+**Client-side reconnection logic:**
+- Exponential backoff: 1s, 2s, 4s, 8s, 16s, 30s (capped).
+- Maximum **10 reconnect attempts** before showing "Connection lost" UI.
+- On successful reconnect, restore phantom piece positions from `localStorage`.
 
 ## Request Flow: Making a Move
 
@@ -223,5 +290,6 @@ class GameCache:
 | Player sees opponent's board | Server never sends opponent piece positions. Each player gets their own view. |
 | Player impersonates other color | WebSocket handler checks session → user → game → assigned color |
 | Replay attacks | Each move validated against current `possible_to_ask` from game engine |
+| Phantom piece data leakage | Phantom pieces are entirely client-side (`localStorage`). The server never receives, stores, or validates phantom piece data. No API endpoint exists for phantoms. |
 | Brute-force login | Rate limiting at NGINX (5/min on `/auth/login`) |
 | Session hijacking | `HttpOnly`, `Secure`, `SameSite=Lax` cookies; CSRF tokens on forms |

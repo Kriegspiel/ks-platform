@@ -600,6 +600,188 @@ The board uses `chessboard.js` with custom theming to match:
 
 Board coordinate labels (a-h, 1-8): Inter 11px/500, `--text-secondary`.
 
+### Phantom Piece Styling
+
+Phantom pieces are client-side opponent tracking aids (see [FRONTEND.md](./FRONTEND.md)).
+
+```css
+/* Phantom pieces (opponent tracking aids) */
+.phantom-piece {
+  opacity: 0.45;
+  filter: grayscale(20%);
+  pointer-events: all;
+  cursor: grab;
+  position: relative;
+}
+
+.phantom-piece::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border: 2px dashed var(--accent-gold);
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 150ms;
+}
+
+.phantom-piece:hover {
+  opacity: 0.65;
+}
+
+.phantom-piece:hover::after {
+  opacity: 1;
+}
+
+.phantom-tray {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: var(--space-3);
+}
+
+.phantom-tray-piece {
+  width: 32px;
+  height: 32px;
+  opacity: 0.5;
+  cursor: grab;
+  transition: opacity 150ms;
+}
+
+.phantom-tray-piece:hover {
+  opacity: 0.8;
+}
+```
+
+### Pawn Promotion Modal
+
+```css
+.promotion-modal {
+  /* Inherits from .modal base styles */
+  max-width: 240px;
+  padding: var(--space-4);
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.promotion-option {
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  transition: border-color 150ms ease;
+  background: transparent;
+  padding: 4px;
+}
+
+.promotion-option:hover {
+  border-color: var(--accent-gold);
+  background: var(--bg-hover);
+}
+```
+
+### Connection Status Indicator
+
+```css
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot--connected {
+  background: var(--accent-success);
+}
+
+.status-dot--disconnected {
+  background: var(--text-placeholder);
+}
+```
+
+### Toast Notifications
+
+Transient feedback messages (illegal move, connection status, etc.):
+
+```css
+.toast {
+  position: fixed;
+  bottom: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: var(--radius-lg);
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 300;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  box-shadow: 0 4px 16px var(--shadow-card);
+  animation: toast-in 300ms ease-out, toast-out 300ms ease-in 2.7s forwards;
+}
+
+.toast--error {
+  border-color: var(--accent-error);
+  color: var(--accent-error);
+}
+
+.toast--success {
+  border-color: var(--accent-success);
+  color: var(--accent-success);
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+```
+
+### Chess Clock (Timer Display)
+
+```css
+.clock {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 24px;
+  font-weight: 400;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  min-width: 100px;
+  text-align: center;
+}
+
+.clock--active {
+  color: var(--text-primary);
+  border-color: var(--accent-gold);
+}
+
+.clock--inactive {
+  color: var(--text-secondary);
+}
+
+.clock--low {
+  color: var(--accent-error);
+  animation: clock-pulse 1s ease-in-out infinite;
+}
+
+@keyframes clock-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+```
+
 ---
 
 ## Shadows
@@ -774,7 +956,7 @@ Icon style: outline (stroke-width 1.5px), inherits parent color. No filled icons
 
 ## CSS Framework
 
-**Do not use Pico CSS or Simple.css as-is.** Instead, build a minimal custom stylesheet following this design system. The CSS classless frameworks suggested in FRONTEND.md are overridden by this design spec.
+**Do not use Pico CSS, Simple.css, or any classless CSS framework.** Instead, build a minimal custom stylesheet following this design system exactly.
 
 The CSS should be:
 
@@ -790,6 +972,26 @@ Load order:
 <link rel="stylesheet" href="/static/css/kriegspiel.css">      <!-- Design system -->
 <link rel="stylesheet" href="/static/css/chessboard.css">       <!-- chessboard.js styles -->
 ```
+
+---
+
+## CSS Class Inventory
+
+Complete list of all CSS classes defined in this design system:
+
+| Category | Classes |
+|---|---|
+| Layout | `.container`, `.container--wide`, `.game-layout`, `.header` |
+| Buttons | `.btn-primary`, `.btn-secondary`, `.btn-ghost`, `.btn-game-action`, `.btn-game-action--danger` |
+| Inputs | `.input` |
+| Cards | `.card`, `.card--interactive` |
+| Modal | `.modal-backdrop`, `.modal`, `.promotion-modal`, `.promotion-option` |
+| Referee | `.referee-panel`, `.referee-message`, `.referee-message--announcement`, `.referee-message--capture`, `.referee-message--check`, `.referee-message--game-over` |
+| Board | `.board-container`, `.board-light-square`, `.board-dark-square`, `.board-highlight` |
+| Phantom | `.phantom-piece`, `.phantom-tray`, `.phantom-tray-piece` |
+| Status | `.status-dot`, `.status-dot--connected`, `.status-dot--disconnected` |
+| Toast | `.toast`, `.toast--error`, `.toast--success` |
+| Clock | `.clock`, `.clock--active`, `.clock--inactive`, `.clock--low` |
 
 ---
 

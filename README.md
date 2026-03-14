@@ -80,7 +80,7 @@ The domain is owned by the project. See [INFRA.md](./INFRA.md) for DNS, TLS, and
 | Real-time | **WebSocket** (FastAPI native) | Low-latency move delivery; replaces old 3-second polling |
 | Frontend | **Jinja2 templates + HTMX + chessboard.js** | Python-centric stack; minimal JS; server-rendered |
 | Auth | **Session-based + optional OAuth** | Simple for users; JWT available for API clients |
-| Deployment | **Docker Compose → single VPS** | Minimal ops overhead for a niche game |
+| Deployment | **Docker Compose → single VPS** | Minimal ops overhead for a niche game; 1 Uvicorn worker (no Redis needed for Phase 1) |
 
 ## Existing Ecosystem
 
@@ -101,5 +101,20 @@ From [content/rules/berkeley.md](https://github.com/kriegspiel/content/blob/mast
 - **Checks**: Referee announces direction — Rank / File / Long diagonal / Short diagonal / Knight / Double check.
 - **Not announced**: Castling, en passant, pawn promotions happen silently.
 - **"Any?" rule**: Player may ask "Any pawn captures?" → Referee says "Try" (must then capture with pawn) or "No" (count added to illegal tries visible to opponent).
+- **Opponent piece tracking (phantom pieces)**: Since players cannot see opponent pieces, the UI provides a full set of opponent-colored "phantom" pieces that the player can freely place, move, and remove on the board as personal memory aids. Phantom pieces are entirely client-side — they never affect the game state and are never sent to the server. Players use them to track where they believe opponent pieces are.
 - **Game end**: Checkmate or stalemate announced. No 3-fold repetition or 50-move draw rules.
 - **Material stalemate**: Standard chess insufficient-material rules apply.
+
+## Document Authority
+
+When specs overlap, the following precedence applies:
+
+| Topic | Authoritative Document | Notes |
+|---|---|---|
+| Visual design & styling | [DESIGN.md](./DESIGN.md) | Overrides any styling mentions in FRONTEND.md |
+| Database schemas | [DATA_MODEL.md](./DATA_MODEL.md) | Overrides inline schemas in other docs |
+| API contracts | [API_SPEC.md](./API_SPEC.md) | Overrides inline examples in ARCHITECTURE.md |
+| Engine integration | [GAME_ENGINE.md](./GAME_ENGINE.md) | Code in ARCHITECTURE.md is illustrative only |
+| Game state transitions | [ARCHITECTURE.md](./ARCHITECTURE.md) | State machine is defined here |
+
+**Recommended reading order:** README → ARCHITECTURE → GAME_ENGINE → DATA_MODEL → API_SPEC → AUTH → FRONTEND → DESIGN → INFRA → MILESTONES

@@ -101,6 +101,31 @@ def verify_password(plain: str, hashed: str) -> bool:
 - Max password length enforced at 72 bytes (bcrypt limitation).
 - No password complexity rules beyond minimum 8 chars + 1 letter + 1 digit. Complexity rules hurt more than they help.
 
+### CSRF Token Implementation
+
+CSRF protection prevents cross-site form submissions:
+
+1. **Generation**: A random 32-byte hex CSRF token is generated per session and stored in the session document:
+   ```json
+   { "_id": "sess_...", "csrf_token": "a1b2c3d4..." }
+   ```
+2. **Form embedding**: Jinja2 templates include a hidden field in all forms:
+   ```html
+   <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+   ```
+3. **HTMX headers**: For HTMX requests, include the CSRF token in headers:
+   ```html
+   <body hx-headers='{"X-CSRF-Token": "{{ csrf_token }}"}'>
+   ```
+4. **Middleware validation**: On all POST/PATCH/DELETE requests (except API token auth), the middleware checks `_csrf` form field or `X-CSRF-Token` header against the session's `csrf_token`. Mismatch → 403.
+5. **WebSocket connections are exempt** from CSRF (they use token-based auth).
+
+### Session Cleanup
+
+- MongoDB TTL index on `expires_at` handles expired session deletion automatically.
+- On explicit logout (`POST /auth/logout`), the session document is **immediately deleted** from MongoDB — do not rely solely on TTL.
+- On login, any existing sessions for the same user are preserved (allow multi-device login).
+
 ## API Token Auth (Programmatic Access)
 
 For bots and analysis tools that play via the API.
@@ -152,6 +177,18 @@ Request handling checks in order:
 2. `session_id` cookie → MongoDB lookup
 3. `?token=` query param (WebSocket only) → JWT validation
 4. None found → 401
+
+### WebSocket Authentication Detail
+
+WebSocket connections authenticate during the initial handshake:
+
+1. Extract `?token=` from the WebSocket URL query params.
+2. If the token starts with `ks_live_`, validate it as a JWT (API token auth).
+3. Otherwise, treat it as a `session_id` and look it up in MongoDB.
+4. If auth fails, close the WebSocket with code **1008** (policy violation).
+5. If the user is not a participant in the requested game, close with code **4002**.
+6. If the game is not in `active` or `paused` state, close with code **4003**.
+7. On successful auth, **do not extend session expiry** — WebSocket connections are long-lived and sliding expiry on every message would be wasteful.
 
 ## OAuth (Phase 2)
 
@@ -252,6 +289,7 @@ async def require_game_player(game_id: str, user_id: str, db) -> str:
 | Threat | Mitigation |
 |---|---|
 | Brute-force login | NGINX rate limit: 5 req/min on `/auth/login` |
+| Brute-force registration | NGINX rate limit: 3 req/min on `/auth/register` |
 | Session fixation | New session ID generated on every login |
 | Session hijacking | `HttpOnly`, `Secure`, `SameSite=Lax` flags |
 | CSRF | `SameSite=Lax` + CSRF token in forms (Jinja2 generates) |
