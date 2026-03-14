@@ -1,1 +1,0 @@
-BASE64_ENCODED_PNG — see assets/logo/README.md for details. Decode with: base64 -d logo-light.png.b64 > logo-light.png
