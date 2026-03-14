@@ -18,6 +18,7 @@ This repository is the **blueprint** for building the Kriegspiel platform. It co
 | [FRONTEND.md](./FRONTEND.md) | Web client architecture and UI specifications |
 | [INFRA.md](./INFRA.md) | Docker, CI/CD, deployment, monitoring |
 | [MILESTONES.md](./MILESTONES.md) | Phased delivery plan with acceptance criteria |
+| [LOGO.md](./LOGO.md) | Logo design spec — double-headed knight, light/dark theme toggle |
 
 ## Key Design Decisions
 
