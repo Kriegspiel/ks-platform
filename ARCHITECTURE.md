@@ -116,7 +116,7 @@ Every game moves through a defined set of states. No other transitions are valid
 | Transition | Trigger | Timeout / Condition |
 |---|---|---|
 | `waiting → active` | Second player calls `POST /api/game/join/{code}` | — |
-| `waiting → aborted` | Creator cancels, or MongoDB TTL expires | 24 hours |
+| `waiting → aborted` | Creator cancels, or the waiting game's `expires_at` TTL is reached | 24 hours |
 | `active → paused` | Player disconnects (no WebSocket heartbeat pong) | 30 seconds without pong |
 | `paused → active` | Disconnected player reconnects via WebSocket | — |
 | `active → completed` | Checkmate, stalemate, insufficient material, resignation, draw agreement | — |
@@ -173,10 +173,10 @@ The server maintains connection liveness via a ping/pong mechanism:
 
 When a player disconnects and reconnects:
 
-1. Client initiates a new WebSocket connection to `/ws/game/{game_id}?token={session_token}`.
-2. Server authenticates the token and verifies the player belongs to this game.
+1. Browser clients reconnect to `/ws/game/{game_id}` using their same-origin session cookie. External clients reconnect to `/ws/game/{game_id}?token={api_token}`.
+2. Server authenticates the client and verifies the player belongs to this game.
 3. Server sends a `connected` message with the **full current game state**:
-   - `your_fen`: current board from the player's perspective
+   - `your_fen`: sanitized display FEN for the player's perspective only
    - `turn`: whose turn it is
    - `move_number`: current move number
    - `referee_log`: last 20 referee announcements (so the player can see recent history)
@@ -200,7 +200,7 @@ Player (browser)
     ▼
 FastAPI WS Handler (/ws/game/{game_id})
     │
-    ├─ 1. Validate session (player belongs to this game, correct color)
+    ├─ 1. Validate authenticated user (cookie or API token; player belongs to this game, correct color)
     ├─ 2. Validate it's this player's turn
     ├─ 3. Build KriegspielMove from UCI string
     ├─ 4. Call game_service.attempt_move(game_id, move)
@@ -288,8 +288,8 @@ class GameCache:
 | Concern | Mitigation |
 |---|---|
 | Player sees opponent's board | Server never sends opponent piece positions. Each player gets their own view. |
-| Player impersonates other color | WebSocket handler checks session → user → game → assigned color |
+| Player impersonates other color | WebSocket handler checks cookie/API token → user → game → assigned color |
 | Replay attacks | Each move validated against current `possible_to_ask` from game engine |
 | Phantom piece data leakage | Phantom pieces are entirely client-side (`localStorage`). The server never receives, stores, or validates phantom piece data. No API endpoint exists for phantoms. |
 | Brute-force login | Rate limiting at NGINX (5/min on `/auth/login`) |
-| Session hijacking | `HttpOnly`, `Secure`, `SameSite=Lax` cookies; CSRF tokens on forms |
+| Session hijacking | `HttpOnly`, `Secure`, `SameSite=Lax` cookies; CSRF tokens on forms; `Origin` validation on cookie-auth WebSockets |

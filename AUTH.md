@@ -45,42 +45,35 @@ Two auth mechanisms serve different clients:
 
 ### Session Middleware (FastAPI)
 
+The session middleware should be **best-effort hydration**, not a global auth gate. It attaches `request.state.user` when a valid cookie is present and sets it to `None` otherwise. Protected routes enforce authentication explicitly.
+
 ```python
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import Request, HTTPException
+from fastapi import Request
+from datetime import datetime, timedelta, timezone
 
 
 class SessionMiddleware(BaseHTTPMiddleware):
-    """Look up session cookie and populate request.state.user."""
-
-    EXEMPT_PATHS = {"/auth/login", "/auth/register", "/", "/static"}
+    """Hydrate request.state.user from the session cookie when present."""
 
     async def dispatch(self, request: Request, call_next):
-        # Skip auth for public routes
-        if any(request.url.path.startswith(p) for p in self.EXEMPT_PATHS):
-            return await call_next(request)
+        request.state.user = None
 
         session_id = request.cookies.get("session_id")
-        if not session_id:
-            raise HTTPException(401, "Not authenticated")
+        if session_id:
+            session = await request.app.state.db.sessions.find_one({"_id": session_id})
 
-        session = await request.app.state.db.sessions.find_one(
-            {"_id": session_id}
-        )
-        if not session:
-            raise HTTPException(401, "Session expired")
+            if session:
+                request.state.user = {
+                    "user_id": session["user_id"],
+                    "username": session["username"],
+                }
 
-        # Populate user context
-        request.state.user = {
-            "user_id": session["user_id"],
-            "username": session["username"],
-        }
-
-        # Sliding expiry: extend session on activity
-        await request.app.state.db.sessions.update_one(
-            {"_id": session_id},
-            {"$set": {"expires_at": datetime.now(timezone.utc) + timedelta(days=30)}}
-        )
+                # Sliding expiry: extend session on activity
+                await request.app.state.db.sessions.update_one(
+                    {"_id": session_id},
+                    {"$set": {"expires_at": datetime.now(timezone.utc) + timedelta(days=30)}}
+                )
 
         return await call_next(request)
 ```
@@ -118,7 +111,7 @@ CSRF protection prevents cross-site form submissions:
    <body hx-headers='{"X-CSRF-Token": "{{ csrf_token }}"}'>
    ```
 4. **Middleware validation**: On all POST/PATCH/DELETE requests (except API token auth), the middleware checks `_csrf` form field or `X-CSRF-Token` header against the session's `csrf_token`. Mismatch → 403.
-5. **WebSocket connections are exempt** from CSRF (they use token-based auth).
+5. **WebSocket connections do not use form CSRF tokens.** When a browser WebSocket authenticates via the `session_id` cookie, the server must validate the `Origin` header (`https://kriegspiel.org` or `https://www.kriegspiel.org`) to prevent cross-site WebSocket hijacking. External clients use API tokens instead of browser cookies.
 
 ### Session Cleanup
 
@@ -138,7 +131,7 @@ Cookie: session_id=...  (must be logged in)
 
 Response:
 {
-  "token": "ks_live_a1b2c3...",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "expires_at": "2026-06-13T00:00:00Z"
 }
 ```
@@ -162,33 +155,38 @@ Signed with HS256 using the app's `SECRET_KEY`.
 ### Token Usage
 
 ```
-Authorization: Bearer ks_live_a1b2c3...
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 Or for WebSocket:
 ```
-wss://kriegspiel.org/ws/game/{game_id}?token=ks_live_a1b2c3...
+wss://kriegspiel.org/ws/game/{game_id}?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 ### Auth Priority
 
-Request handling checks in order:
+HTTP requests check in order:
 1. `Authorization: Bearer` header → JWT validation
 2. `session_id` cookie → MongoDB lookup
-3. `?token=` query param (WebSocket only) → JWT validation
-4. None found → 401
+3. None found → 401
+
+WebSocket requests check in order:
+1. `?token=` query param → JWT validation (external clients)
+2. `session_id` cookie → MongoDB lookup (same-origin browser UI)
+3. None found → close with 1008
 
 ### WebSocket Authentication Detail
 
 WebSocket connections authenticate during the initial handshake:
 
 1. Extract `?token=` from the WebSocket URL query params.
-2. If the token starts with `ks_live_`, validate it as a JWT (API token auth).
-3. Otherwise, treat it as a `session_id` and look it up in MongoDB.
-4. If auth fails, close the WebSocket with code **1008** (policy violation).
-5. If the user is not a participant in the requested game, close with code **4002**.
-6. If the game is not in `active` or `paused` state, close with code **4003**.
-7. On successful auth, **do not extend session expiry** — WebSocket connections are long-lived and sliding expiry on every message would be wasteful.
+2. If a token is present, validate it as a JWT (API token auth).
+3. Otherwise, look for the `session_id` cookie and validate it against MongoDB.
+4. If cookie auth is used, validate the `Origin` header against the allowed site origins before accepting the socket.
+5. If auth fails, close the WebSocket with code **1008** (policy violation).
+6. If the user is not a participant in the requested game, close with code **4002**.
+7. If the game is not in `active` or `paused` state, close with code **4003**.
+8. On successful auth, **do not extend session expiry** on every WebSocket message — only the initial handshake may refresh activity if desired.
 
 ## OAuth (Phase 2)
 
@@ -246,7 +244,7 @@ def require_auth(func):
     """Ensure request has valid session/token."""
     @wraps(func)
     async def wrapper(request: Request, *args, **kwargs):
-        if not hasattr(request.state, "user"):
+        if not getattr(request.state, "user", None):
             raise HTTPException(401, "Authentication required")
         return await func(request, *args, **kwargs)
     return wrapper
@@ -256,7 +254,7 @@ def require_admin(func):
     """Ensure request is from admin user."""
     @wraps(func)
     async def wrapper(request: Request, *args, **kwargs):
-        if not hasattr(request.state, "user"):
+        if not getattr(request.state, "user", None):
             raise HTTPException(401)
         user = await request.app.state.db.users.find_one(
             {"_id": request.state.user["user_id"]}
@@ -293,9 +291,10 @@ async def require_game_player(game_id: str, user_id: str, db) -> str:
 | Session fixation | New session ID generated on every login |
 | Session hijacking | `HttpOnly`, `Secure`, `SameSite=Lax` flags |
 | CSRF | `SameSite=Lax` + CSRF token in forms (Jinja2 generates) |
+| Cross-site WebSocket hijacking | Validate `Origin` on cookie-authenticated WebSocket handshakes |
 | Timing attacks on password | `bcrypt.checkpw` is constant-time |
 | Credential stuffing | Rate limiting + optional CAPTCHA (Phase 2) |
-| Token leakage | Short-lived JWTs, token revocation via deny-list (Phase 2) |
+| Token leakage | JWT expiry, secure transport, optional deny-list in Phase 2 |
 
 ## CORS Configuration
 

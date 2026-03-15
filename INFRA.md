@@ -63,8 +63,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./src/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./src/nginx/conf.d:/etc/nginx/conf.d:ro
       - ./certbot/conf:/etc/letsencrypt:ro
       - ./certbot/www:/var/www/certbot:ro
       - app-static:/var/www/static:ro
@@ -75,8 +75,8 @@ services:
 
   app:
     build:
-      context: ./app
-      dockerfile: Dockerfile
+      context: ./src
+      dockerfile: ./app/Dockerfile
     container_name: ks-app
     environment:
       - MONGO_URI=mongodb://mongo:27017/kriegspiel?replicaSet=rs0
@@ -84,7 +84,7 @@ services:
       - ENVIRONMENT=${ENVIRONMENT:-production}
       - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
-      - app-static:/app/static
+      - app-static:/app/app/static
     expose:
       - "8000"
     depends_on:
@@ -103,7 +103,7 @@ services:
     command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     volumes:
       - mongo-data:/data/db
-      - ./mongo/init-replica.sh:/docker-entrypoint-initdb.d/init-replica.sh:ro
+      - ./src/mongo/init-replica.sh:/docker-entrypoint-initdb.d/init-replica.sh:ro
     expose:
       - "27017"
     healthcheck:
@@ -161,10 +161,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Python deps
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY app/requirements.txt ./app/requirements.txt
+RUN pip install --no-cache-dir -r app/requirements.txt
 
-# App code
+# App code (`src/` is the build context root)
 COPY . .
 
 # Collect static files (if any build step needed)
@@ -172,7 +172,7 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--ws-max-size", "65536"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--ws-max-size", "65536"]
 ```
 
 Single worker because:
@@ -372,13 +372,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r app/requirements.txt
-          pip install -r app/requirements-dev.txt
+          pip install -r src/app/requirements.txt
+          pip install -r src/app/requirements-dev.txt
 
       - name: Lint
         run: |
-          black --check --line-length 128 app/
-          ruff check app/
+          black --check --line-length 128 src/app src/tests
+          ruff check src/app src/tests
 
       - name: Test
         env:
@@ -386,13 +386,13 @@ jobs:
           SECRET_KEY: test-secret
           ENVIRONMENT: testing
         run: |
-          cd app
-          pytest --cov=. --cov-report=xml -v
+          cd src
+          pytest tests --cov=app --cov-report=xml -v
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
-          file: app/coverage.xml
+          file: src/coverage.xml
 
   deploy:
     needs: test
@@ -477,10 +477,10 @@ find ${BACKUP_DIR} -name "*.gz" -mtime +30 -delete
 
 ## NGINX Configuration Notes
 
-The `limit_req_zone` and `limit_conn_zone` directives **must** be placed in the `http` block of `nginx/nginx.conf`, not inside `conf.d/kriegspiel.conf`. The server block in `kriegspiel.conf` only references the zones:
+The `limit_req_zone` and `limit_conn_zone` directives **must** be placed in the `http` block of `src/nginx/nginx.conf`, not inside `src/nginx/conf.d/kriegspiel.conf`. The server block in `kriegspiel.conf` only references the zones:
 
 ```nginx
-# nginx/nginx.conf — add to the http block:
+# src/nginx/nginx.conf — add to the http block:
 http {
     limit_req_zone $binary_remote_addr zone=api:10m rate=30r/s;
     limit_req_zone $binary_remote_addr zone=auth:10m rate=5r/m;
@@ -531,10 +531,10 @@ docker compose --profile dev up --build
 # Mongo Express: http://localhost:8081
 
 # Or run without Docker for faster iteration:
-cd app
+cd src
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt -r requirements-dev.txt
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+pip install -r app/requirements.txt -r app/requirements-dev.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # ── Local MongoDB without Docker ──────────────────────────
 # macOS (Homebrew):

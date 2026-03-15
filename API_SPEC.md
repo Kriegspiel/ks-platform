@@ -168,7 +168,7 @@ List games waiting for an opponent (lobby).
 
 ### `GET /api/game/{game_id}`
 
-Get game metadata (not the board state — that comes via WebSocket).
+Get game metadata (not the board state — that comes via WebSocket). Completed games may be served from `game_archives`.
 
 **Response `200`:**
 ```json
@@ -205,7 +205,7 @@ Current player resigns.
 
 ### `GET /api/game/{game_id}/moves`
 
-Full move transcript. Available to game participants at any time; available publicly after game ends.
+Full move transcript. Available to game participants at any time; available publicly after game ends. The server should look in `games` first, then `game_archives`.
 
 **Response `200`:**
 ```json
@@ -337,22 +337,30 @@ Update user settings (authenticated).
 
 ### Connection
 
+Browser web UI:
 ```
-wss://kriegspiel.org/ws/game/{game_id}?token={session_token}
+wss://kriegspiel.org/ws/game/{game_id}
 ```
 
-The `session_token` is the same session cookie value. Passed as query param because WebSocket connections don't reliably send cookies in all clients.
+Same-origin browser WebSocket handshakes authenticate with the `session_id` cookie automatically.
+
+External clients:
+```
+wss://kriegspiel.org/ws/game/{game_id}?token={api_token}
+```
+
+Use the query param form only for API-token clients (bots, scripts, tests that are not using the browser cookie jar).
 
 ### Authentication Handshake
 
-On connect, server validates token, determines player color, and sends:
+On connect, server authenticates the client, determines player color, and sends:
 
 ```json
 {
   "type": "connected",
   "game_id": "664b2c...",
   "your_color": "white",
-  "your_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  "your_fen": "8/8/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1",
   "turn": "white",
   "move_number": 1,
   "referee_log": [],
@@ -365,6 +373,8 @@ On connect, server validates token, determines player color, and sends:
   }
 }
 ```
+
+`your_fen` is a sanitized display FEN for the player's board only. It never includes opponent piece placement, castling rights, or en passant metadata.
 
 ### Client → Server Messages
 
@@ -412,7 +422,7 @@ On connect, server validates token, determines player color, and sends:
     "check_2": null
   },
   "move_done": true,
-  "your_fen": "8/8/8/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1",
+  "your_fen": "8/8/8/8/4P3/8/PPPP1PPP/RNBQKBNR b - - 0 1",
   "turn": "black",
   "possible_actions": [],
   "clock": {
@@ -434,7 +444,7 @@ On connect, server validates token, determines player color, and sends:
     "check_1": null,
     "check_2": null
   },
-  "your_fen": "rnbqkbnr/pppppppp/8/8/8/8/8/8 b KQkq - 0 1",
+  "your_fen": "rnbqkbnr/pppppppp/8/8/8/8/8/8 b - - 0 1",
   "turn": "black",
   "possible_actions": ["move", "ask_any"],
   "clock": {
@@ -489,7 +499,7 @@ Note: Per Berkeley rules, the opponent hears that a move was attempted and rejec
     "reason": "checkmate",
     "special": "CHECKMATE_WHITE_WINS"
   },
-  "full_board_fen": "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP22P/RNBQKBNR w KQkq - 1 3",
+  "full_board_fen": "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3",
   "move_log_url": "/api/game/664b2c.../moves"
 }
 ```
@@ -680,7 +690,7 @@ class GameHistoryItem(BaseModel):
 
 ## API Authentication for External Clients
 
-For programmatic access (bots, analysis tools), API key authentication is supported:
+For programmatic access (bots, analysis tools), API token authentication is supported:
 
 ### `POST /api/auth/token`
 
@@ -689,11 +699,11 @@ Generate an API token (authenticated via session).
 **Response `201`:**
 ```json
 {
-  "token": "ks_live_abc123...",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "expires_at": "2026-06-13T00:00:00Z"
 }
 ```
 
-Use via header: `Authorization: Bearer ks_live_abc123...`
+Use via header: `Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
 
-API tokens work for all REST endpoints and WebSocket connections (pass as `?token=` query param).
+API tokens work for all REST endpoints and external WebSocket connections (pass as `?token=` query param).

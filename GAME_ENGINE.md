@@ -47,7 +47,7 @@ from kriegspiel.move import (
 )
 import chess
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 
 class GameService:
@@ -82,15 +82,16 @@ class GameService:
             "white": self._make_player(user_id, username) if color == "white" else self._empty_player(),
             "black": self._make_player(user_id, username) if color == "black" else self._empty_player(),
             "state": "waiting",
+            "expires_at": datetime.now(timezone.utc) + timedelta(hours=24),
             "turn": "white",
-            "move_number": 0,
+            "move_number": 1,
             "half_move_count": 0,
             "engine_state": engine_state,
             "white_fen": self._player_fen(game, chess.WHITE),
             "black_fen": self._player_fen(game, chess.BLACK),
             "moves": [],
             "result": None,
-            "time_control": None,
+            "time_control": self._initial_clock_state(),
             "created_at": datetime.now(timezone.utc),
             "updated_at": datetime.now(timezone.utc),
         }
@@ -117,7 +118,7 @@ class GameService:
         Returns a dict with:
           - answer: the KriegspielAnswer
           - move_done: bool
-          - your_fen: updated FEN for the moving player
+          - your_fen: updated sanitized display FEN for the moving player
           - opponent_fen: updated FEN for the opponent
           - game_over: bool
           - result: game result if over
@@ -192,10 +193,13 @@ class GameService:
 
     def _player_fen(self, game: BerkeleyGame, color: bool) -> str:
         """
-        Generate a FEN showing only the given player's pieces.
+        Generate a sanitized display FEN showing only the given player's pieces.
 
         The opponent's pieces are replaced with empty squares.
         This is what each player sees on their board.
+        The returned string is a sanitized display FEN: piece placement +
+        side to move, with castling rights and en passant redacted so we do
+        not leak hidden opponent state.
 
         NOTE: game._board is a private attribute of BerkeleyGame. We access it
         intentionally because the engine does not expose a public board accessor.
@@ -208,7 +212,8 @@ class GameService:
             if piece and piece.color != color:
                 board.remove_piece_at(square)
 
-        return board.fen()
+        turn = "w" if game.turn == chess.WHITE else "b"
+        return f"{board.board_fen()} {turn} - - 0 1"
 
     # ── Serialization ────────────────────────────────────────
 
@@ -355,6 +360,16 @@ class GameService:
             import random
             return random.choice(["white", "black"])
         return play_as
+
+    @staticmethod
+    def _initial_clock_state() -> dict:
+        return {
+            "base": 1500,
+            "increment": 10,
+            "white_remaining": 1500.0,
+            "black_remaining": 1500.0,
+            "active_color": None,
+        }
 ```
 
     # ── Resign ─────────────────────────────────────────────────
@@ -546,7 +561,7 @@ When a player flags (runs out of time):
 
 ## Pawn Promotion
 
-Pawn promotion is handled via the UCI move format. When a pawn reaches the last rank, the client appends a promotion suffix to the UCI string:
+Pawn promotion is handled via the UCI move format. When a pawn reaches the last rank, the browser UI prompts the player to choose a promotion piece, then appends the suffix to the UCI string:
 
 | UCI | Meaning |
 |---|---|

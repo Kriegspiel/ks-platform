@@ -361,6 +361,8 @@ Post-game analysis page. Available after game ends.
 
 The primary JavaScript in the project. Approximately **270 lines** (including PhantomManager).
 
+The browser client authenticates its WebSocket via the same-origin `session_id` cookie. JavaScript never reads or forwards the `HttpOnly` session cookie value.
+
 ```javascript
 /**
  * game.js — WebSocket client for Kriegspiel gameplay.
@@ -374,9 +376,8 @@ The primary JavaScript in the project. Approximately **270 lines** (including Ph
  */
 
 class KriegspielClient {
-    constructor(gameId, sessionToken, playerColor) {
+    constructor(gameId, playerColor) {
         this.gameId = gameId;
-        this.token = sessionToken;
         this.color = playerColor;
         this.ws = null;
         this.board = null;       // chessboard.js instance
@@ -385,7 +386,8 @@ class KriegspielClient {
     }
 
     connect() {
-        const url = `wss://${window.location.host}/ws/game/${this.gameId}?token=${this.token}`;
+        const scheme = window.location.protocol === "https:" ? "wss" : "ws";
+        const url = `${scheme}://${window.location.host}/ws/game/${this.gameId}`;
         this.ws = new WebSocket(url);
 
         this.ws.onopen = () => {
@@ -436,13 +438,22 @@ class KriegspielClient {
     sendMove(source, target, piece) {
         // Convert chessboard.js square names to UCI
         const uci = source + target;
-        // Handle pawn promotion (always promote to queen for now)
         const isPromotion = piece === "wP" && target[1] === "8"
                          || piece === "bP" && target[1] === "1";
-        this.ws.send(JSON.stringify({
-            action: "move",
-            uci: isPromotion ? uci + "q" : uci
-        }));
+
+        if (isPromotion) {
+            this.openPromotionModal().then((suffix) => {
+                if (!suffix) return;   // User cancelled
+                this._sendUci(uci + suffix);
+            });
+            return;
+        }
+
+        this._sendUci(uci);
+    }
+
+    _sendUci(uci) {
+        this.ws.send(JSON.stringify({ action: "move", uci }));
     }
 
     sendAskAny() {
@@ -565,7 +576,7 @@ class GameReview {
     renderAtCurrentPly() {
         // Rebuild board state by replaying moves up to currentPly
         // Use perspective to filter: "referee" = full FEN,
-        // "white"/"black" = filter opponent pieces from FEN client-side
+        // "white"/"black" = sanitized per-player display FEN
         // Highlight current move in the move log
     }
 }

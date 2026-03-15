@@ -78,17 +78,18 @@ Stores active and recently completed games. This is the hot collection.
     "last_seen_at": "ISODate"
   },
   "black": {
-    "user_id": null,
-    "username": null,
-    "connected": false,
-    "last_seen_at": null
+    "user_id": "ObjectId",
+    "username": "opponent1",
+    "connected": true,
+    "last_seen_at": "ISODate"
   },
 
-  "state": "waiting",
+  "state": "active",
+  "expires_at": null,                  // Waiting-game TTL (null once the game starts)
 
-  "turn": "white",
-  "move_number": 12,                // Chess full-move counter (increments after Black moves)
-  "half_move_count": 23,            // Total ply counter (all successful moves, both colors)
+  "turn": "black",
+  "move_number": 1,                 // Chess full-move counter (increments after Black moves)
+  "half_move_count": 1,             // Total ply counter (all successful moves, both colors)
 
   "engine_state": {
     "version": "1.2.0",
@@ -103,8 +104,8 @@ Stores active and recently completed games. This is the hot collection.
     }
   },
 
-  "white_fen": "8/8/8/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1",
-  "black_fen": "rnbqkbnr/pppppppp/8/8/8/8/8/8 b KQkq - 0 1",
+  "white_fen": "8/8/8/8/4P3/8/PPPP1PPP/RNBQKBNR b - - 0 1",
+  "black_fen": "rnbqkbnr/pppppppp/8/8/8/8/8/8 b - - 0 1",
 
   "moves": [
     {
@@ -124,11 +125,7 @@ Stores active and recently completed games. This is the hot collection.
     }
   ],
 
-  "result": {
-    "winner": "white",
-    "reason": "checkmate",
-    "ended_at": "ISODate"
-  },
+  "result": null,
 
   "time_control": {
     "base": 1500,                    // 25 minutes in seconds
@@ -152,10 +149,10 @@ db.games.createIndex({ "game_code": 1 }, { unique: true })
 db.games.createIndex({ "state": 1, "created_at": -1 })
 db.games.createIndex({ "white.user_id": 1, "state": 1 })
 db.games.createIndex({ "black.user_id": 1, "state": 1 })
-db.games.createIndex({ "state": 1, "updated_at": 1 },
-                      { expireAfterSeconds: 86400,
-                        partialFilterExpression: { "state": "waiting" } })
+db.games.createIndex({ "expires_at": 1 }, { expireAfterSeconds: 0 })
 ```
+
+`expires_at` is set only for games in the `waiting` state. When a second player joins, set `expires_at` to `null`.
 
 ---
 
@@ -232,10 +229,11 @@ db.sessions.createIndex({ "user_id": 1 })
 
 ```
 1. POST /api/game/create
-   └─ Insert into `games` with state="waiting", black=null
+   └─ Insert into `games` with state="waiting", black=null,
+      expires_at=now+24h
 
 2. POST /api/game/join/{game_code}
-   └─ Update `games`: set black player, state="active"
+   └─ Update `games`: set black player, state="active", expires_at=null
 
 3. WebSocket /ws/game/{game_id}  (gameplay)
    └─ On each move: update `games.engine_state`, `games.moves[]`,
@@ -298,15 +296,16 @@ class GameDocument(BaseModel):
     white: PlayerEmbed
     black: PlayerEmbed
     state: Literal["waiting", "active", "paused", "completed", "abandoned", "aborted"]
+    expires_at: datetime | None = None      # Waiting-game TTL only
     turn: Literal["white", "black"] = "white"
-    move_number: int = 0                   # Chess full-move counter
+    move_number: int = 1                   # Chess full-move counter
     half_move_count: int = 0               # Ply counter
     engine_state: dict                     # Serialized BerkeleyGame (see GAME_ENGINE.md)
-    white_fen: str                         # FEN showing only white's pieces
-    black_fen: str                         # FEN showing only black's pieces
+    white_fen: str                         # Sanitized display FEN showing only white's pieces
+    black_fen: str                         # Sanitized display FEN showing only black's pieces
     moves: list[MoveRecord] = []
     result: GameResult | None = None
-    time_control: dict | None = None       # Phase 2
+    time_control: dict                     # Rapid 25+10 clock state in Phase 1
     created_at: datetime
     updated_at: datetime
 ```
@@ -379,6 +378,9 @@ await db.games.find({
 
 # ── Find game by join code ────────────────────────────────────
 await db.games.find_one({"game_code": game_code})
+
+# ── Find game metadata by ID (active or archived) ─────────────
+await db.games.find_one({"_id": game_id}) or await db.game_archives.find_one({"_id": game_id})
 
 # ── Leaderboard ───────────────────────────────────────────────
 await db.users.find(

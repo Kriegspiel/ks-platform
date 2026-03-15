@@ -19,7 +19,7 @@
 
 | Task | Details | Acceptance Criteria |
 |---|---|---|
-| Init FastAPI project | `main.py`, router stubs, Pydantic settings | `uvicorn main:app` starts, `/health` returns 200 |
+| Init FastAPI project | `main.py`, router stubs, Pydantic settings | `cd src && uvicorn app.main:app` starts, `/health` returns 200 |
 | MongoDB connection | Motor async client, connection pooling | App connects to MongoDB replica set on startup |
 | Docker Compose | App + MongoDB + NGINX containers | `docker compose up` starts all services; app accessible at localhost |
 | Project structure | See below | All directories and `__init__.py` files in place |
@@ -28,75 +28,76 @@
 
 ```
 ks-platform/
-├── app/
-│   ├── main.py                 # FastAPI app factory
-│   ├── config.py               # Pydantic settings (env vars)
-│   ├── database.py             # Motor client setup
-│   ├── dependencies.py         # FastAPI dependency injection
+├── src/
+│   ├── app/
+│   │   ├── main.py                 # FastAPI app factory
+│   │   ├── config.py               # Pydantic settings (env vars)
+│   │   ├── database.py             # Motor client setup
+│   │   ├── dependencies.py         # FastAPI dependency injection
+│   │   │
+│   │   ├── routers/
+│   │   │   ├── auth.py             # /auth/* endpoints
+│   │   │   ├── game.py             # /api/game/* endpoints
+│   │   │   ├── user.py             # /api/user/* endpoints
+│   │   │   ├── pages.py            # / server-rendered pages
+│   │   │   └── ws.py               # /ws/* WebSocket handlers
+│   │   │
+│   │   ├── services/
+│   │   │   ├── user_service.py
+│   │   │   ├── game_service.py
+│   │   │   └── matchmaking_service.py
+│   │   │
+│   │   ├── models/                 # Pydantic models (request/response)
+│   │   │   ├── auth.py
+│   │   │   ├── game.py
+│   │   │   └── user.py
+│   │   │
+│   │   ├── ws/
+│   │   │   ├── manager.py          # ConnectionManager
+│   │   │   └── handlers.py         # WebSocket message handlers
+│   │   │
+│   │   ├── templates/              # Jinja2 HTML templates
+│   │   │   ├── base.html
+│   │   │   ├── home.html
+│   │   │   ├── login.html
+│   │   │   ├── register.html
+│   │   │   ├── lobby.html
+│   │   │   ├── game.html
+│   │   │   ├── review.html
+│   │   │   ├── profile.html
+│   │   │   └── leaderboard.html
+│   │   │
+│   │   ├── static/
+│   │   │   ├── css/
+│   │   │   ├── js/
+│   │   │   │   ├── game.js         # WebSocket client (~270 lines)
+│   │   │   │   └── review.js       # Post-game replay
+│   │   │   ├── img/
+│   │   │   │   └── pieces/         # Chess piece SVGs
+│   │   │   └── sounds/             # Optional sound effects
+│   │   │
+│   │   ├── Dockerfile
+│   │   ├── requirements.txt
+│   │   └── requirements-dev.txt
 │   │
-│   ├── routers/
-│   │   ├── auth.py             # /auth/* endpoints
-│   │   ├── game.py             # /api/game/* endpoints
-│   │   ├── user.py             # /api/user/* endpoints
-│   │   ├── pages.py            # / server-rendered pages
-│   │   └── ws.py               # /ws/* WebSocket handlers
-│   │
-│   ├── services/
-│   │   ├── user_service.py
-│   │   ├── game_service.py
-│   │   └── matchmaking_service.py
-│   │
-│   ├── models/                 # Pydantic models (request/response)
-│   │   ├── auth.py
-│   │   ├── game.py
-│   │   └── user.py
-│   │
-│   ├── ws/
-│   │   ├── manager.py          # ConnectionManager
-│   │   └── handlers.py         # WebSocket message handlers
-│   │
-│   ├── templates/              # Jinja2 HTML templates
-│   │   ├── base.html
-│   │   ├── home.html
-│   │   ├── login.html
-│   │   ├── register.html
-│   │   ├── lobby.html
-│   │   ├── game.html
-│   │   ├── review.html
-│   │   ├── profile.html
-│   │   └── leaderboard.html
-│   │
-│   ├── static/
-│   │   ├── css/
-│   │   ├── js/
-│   │   │   ├── game.js         # WebSocket client (~200 lines)
-│   │   │   └── review.js       # Post-game replay
-│   │   ├── img/
-│   │   │   └── pieces/         # Chess piece SVGs
-│   │   └── sounds/             # Optional sound effects
-│   │
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── requirements-dev.txt
-│
-├── mongo/
-│   └── init-replica.sh
-├── nginx/
-│   ├── nginx.conf
-│   └── conf.d/
-│       └── kriegspiel.conf
+│   ├── mongo/
+│   │   └── init-replica.sh
+│   ├── nginx/
+│   │   ├── nginx.conf
+│   │   └── conf.d/
+│   │       └── kriegspiel.conf
+│   └── tests/
+│       ├── conftest.py
+│       ├── test_auth.py
+│       ├── test_game_service.py
+│       ├── test_game_api.py
+│       ├── test_websocket.py
+│       └── test_user.py
 ├── docker-compose.yml
 ├── .env.example
 ├── .github/
 │   └── workflows/
 │       └── ci.yml
-├── tests/
-│   ├── conftest.py
-│   ├── test_auth.py
-│   ├── test_game_service.py
-│   ├── test_game_api.py
-│   ├── test_websocket.py
-│   └── test_user.py
 └── README.md
 ```
 
@@ -127,7 +128,7 @@ ks-platform/
 
 | Task | Details | Acceptance Criteria |
 |---|---|---|
-| WS connection | `/ws/game/{game_id}?token=` | Auth handshake, player assigned to color, initial board sent |
+| WS connection | `/ws/game/{game_id}` | Browser handshake uses the session cookie; external clients may pass an API token query param. Player assigned to color, initial board sent |
 | Regular moves | `{"action": "move", "uci": "e2e4"}` | Engine processes move; both players get appropriate messages |
 | "Any?" question | `{"action": "ask_any"}` | HAS_ANY/NO_ANY handled; must_use_pawns enforced |
 | Illegal moves | Engine returns ILLEGAL_MOVE | Moving player sees "No."; opponent sees attempt count increment |
