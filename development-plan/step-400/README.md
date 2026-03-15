@@ -1,221 +1,179 @@
-# Step 400 - Real-Time Gameplay Core
+# Step 400 - Gameplay Core
 
 ## Goal
 
-Implement the authoritative gameplay loop over WebSockets, including engine integration, hidden-information responses, clocks, reconnect, and abandon handling.
+Implement the game engine integration, move/ask-any/resign endpoints, game state polling with hidden-information responses, and clock tracking.
 
 ## Read First
 
-- [GAME_ENGINE.md](../../GAME_ENGINE.md)
-- [API_SPEC.md](../../API_SPEC.md) — WebSocket section
-- [ARCHITECTURE.md](../../ARCHITECTURE.md) — state machine, connection manager, game cache, move flow
-- [AUTH.md](../../AUTH.md) — WebSocket auth detail
-- [DATA_MODEL.md](../../DATA_MODEL.md)
+- [GAME_ENGINE.md](../../GAME_ENGINE.md) — BerkeleyGame API, KriegspielMove, KriegspielAnswer
+- [API_SPEC.md](../../API_SPEC.md) — move endpoint, game state endpoint
+- [DATA_MODEL.md](../../DATA_MODEL.md) — engine_state, moves array, white_fen/black_fen
+- [development-plan/PLAN.md](../PLAN.md) — polling (not WebSocket)
 
 ## Depends On
 
 - `step-300`
 
+## Polling Architecture
+
+No WebSocket. The frontend polls `GET /api/game/{game_id}/state?player=white` every 2 seconds during active games. The backend returns the player-specific view each time.
+
 ## Task Slices
 
-### 410 — ConnectionManager
+### 410 — Engine Adapter
 
 **Create this file:**
 
-- `src/app/ws/connection_manager.py` — `ConnectionManager` class exactly as specified in ARCHITECTURE.md:
-  - `active_games: dict[str, dict[str, WebSocket]]` — game_id → {color → WebSocket}
-  - `connect(game_id, color, ws)` — register a player connection
-  - `disconnect(game_id, color)` — remove a player connection
-  - `send_to_player(game_id, color, message)` — send JSON to a specific player
-  - `broadcast_to_game(game_id, message)` — send JSON to both players
-  - `is_connected(game_id, color) -> bool` — check if a player is connected
-  - `get_connection(game_id, color) -> WebSocket | None`
+- `src/app/services/engine_adapter.py` — wraps the `kriegspiel` PyPI package (mirrors ks-v2's `kriegspiel_wrapper.py` pattern but adapted for MongoDB):
+  - `create_new_game(any_rule=True) -> BerkeleyGame` — create fresh BerkeleyGame instance
+  - `attempt_move(game: BerkeleyGame, uci: str) -> dict` — build `KriegspielMove(COMMON, chess.Move.from_uci(uci))`, call `game.ask_for(move)`, return dict with: `main` (announcement name), `capture_square` (square name or None), `special` (special announcement or None), `check_1`, `check_2`, `move_done` (bool), `game_over` (bool), `result` (if game over)
+  - `attempt_ask_any(game: BerkeleyGame) -> dict` — build `KriegspielMove(ASK_ANY, None)`, call `game.ask_for(move)`, return dict with: `has_any` (bool), `main` (announcement name), `move_done` (bool)
+  - `get_visible_fen(game: BerkeleyGame, color: str) -> str` — create board copy, remove opponent pieces, return FEN (same logic as ks-v2's `get_visible_board`)
+  - `get_full_fen(game: BerkeleyGame) -> str` — return full referee board FEN
+  - `serialize_game(game: BerkeleyGame) -> dict` — use `kriegspiel.serialization` to serialize
+  - `deserialize_game(data: dict) -> BerkeleyGame` — restore from serialized state
 
 **Acceptance criteria:**
-- Unit test: connect two players, send_to_player delivers to correct one, disconnect removes correctly
-- `broadcast_to_game` sends to both connected players
-- Missing player connection returns None / is handled gracefully
+- `create_new_game()` returns a valid BerkeleyGame in starting position
+- `attempt_move` with "e2e4" on a new game returns `move_done: true`, `main: "REGULAR_MOVE"`
+- `attempt_move` with an illegal move returns `move_done: false`, `main: "ILLEGAL_MOVE"`
+- `get_visible_fen` for white shows only white pieces
+- `serialize_game` / `deserialize_game` round-trip preserves game state
 
 ---
 
-### 420 — WebSocket Auth Handshake
+### 420 — Move and Ask-Any Endpoints
 
 **Create/modify these files:**
 
-- `src/app/ws/auth.py` — `authenticate_ws(websocket, db) -> dict | None` function:
-  - Check `?token=` query param → validate JWT (for external clients)
-  - Otherwise check `session_id` cookie → MongoDB lookup
-  - If cookie auth: validate `Origin` header against allowed origins
-  - Returns `{user_id, username}` or None
-- `src/app/ws/game_handler.py` — the WebSocket endpoint function (wire into main.py as `/ws/game/{game_id}`):
-  - Accept the WebSocket connection
-  - Call `authenticate_ws` — close with 1008 if auth fails
-  - Look up game, verify user is a participant — close with 4002 if not
-  - Verify game is in `active` or `paused` state — close with 4003 if not
-  - Determine player color
-  - Register in ConnectionManager
-  - Send `connected` message with full game state (as specified in API_SPEC.md)
-  - Notify opponent of reconnection (if applicable)
-  - Enter message receive loop (stub — actual message handling in 400.3)
-  - On disconnect: unregister from ConnectionManager
+- `src/app/routers/game.py` — add endpoints:
+  - `POST /api/game/{game_id}/move` — params: `uci` (str). Requires auth + user is a player in this game + game is active + it's this player's turn. Calls `engine_adapter.attempt_move`. On success:
+    - Append `MoveRecord` to game's `moves` array
+    - Update `engine_state` with serialized game
+    - Update `white_fen` and `black_fen`
+    - If `move_done`: update `turn`, increment `half_move_count`, handle clock (deduct time, add increment)
+    - If `game_over`: set result, transition to completed
+    - Return player-specific response (the moving player gets full answer; clock state included)
+  - `POST /api/game/{game_id}/ask-any` — Requires auth + player's turn. Calls `engine_adapter.attempt_ask_any`. Append to moves array. Return result (`has_any`).
+  - `POST /api/game/{game_id}/resign` — (already exists from 330, but now also: update stats, archive game)
+- `src/app/services/game_service.py` — add:
+  - `complete_game(db, game_id, winner, reason)` — set result, state=completed, update both players' stats (games_played, wins/losses/draws), move game to `game_archives`
 
 **Acceptance criteria:**
-- WebSocket connects successfully with valid session cookie
-- WebSocket is closed with 1008 when no auth is provided
-- WebSocket is closed with 4002 when user is not a game participant
-- WebSocket is closed with 4003 when game is not active/paused
-- `connected` message contains all fields from API_SPEC.md
+- Legal move updates game state and returns `move_done: true`
+- Illegal move returns `move_done: false`, game state unchanged
+- Moving out of turn returns 400
+- Ask-any returns `has_any: true/false`
+- Game over (checkmate/stalemate) is detected and transitions to completed
+- Resign works and updates player stats
 
 ---
 
-### 430 — Heartbeat, Disconnect Detection, Pause/Abandon
-
-**Modify these files:**
-
-- `src/app/ws/game_handler.py` — add heartbeat logic:
-  - Server sends `{"type": "ping"}` every 30 seconds to each connected client
-  - Client must respond with `{"type": "pong"}` within 10 seconds
-  - If no pong received: close WebSocket, mark player disconnected
-  - On disconnect: update game `white.connected`/`black.connected` to false, update `last_seen_at`
-  - If both players were connected and one disconnects: transition game to `paused`, notify remaining player with `{"type": "opponent_status", "connected": false}`
-- `src/app/services/game_service.py` — add methods:
-  - `pause_game(game_id)` — transition active→paused
-  - `resume_game(game_id)` — transition paused→active
-  - `abandon_game(game_id, disconnected_color)` — transition paused→abandoned→completed, award win to connected player
-- `src/app/ws/abandon_watcher.py` — background task that checks paused games every 60 seconds: if a game has been paused for >15 minutes, call `abandon_game`. Start this task in the app lifespan.
-
-**Acceptance criteria:**
-- Server sends ping every 30s, closes connection on missing pong
-- Disconnecting one player pauses the game and notifies the other
-- Reconnecting after pause resumes the game
-- A game paused for >15 minutes is auto-abandoned, opponent wins
-- `opponent_status` messages are sent on connect/disconnect events
-
----
-
-### 440 — Move Flow with Engine Integration
+### 430 — Game State Polling Endpoint
 
 **Create/modify these files:**
 
-- `src/app/services/engine_adapter.py` — adapter wrapping the `kriegspiel` PyPI package:
-  - `create_new_game(any_rule=True) -> BerkeleyGame` — creates a fresh game instance
-  - `attempt_move(game: BerkeleyGame, uci: str) -> dict` — builds a `KriegspielMove` from UCI, calls `game.ask_for(move)`, returns a dict with: `answer` (MoveAnswer fields), `move_done` (bool), `game_over` (bool), `result` (if game over)
-  - `serialize_game(game: BerkeleyGame) -> dict` — serialize engine state for MongoDB storage
-  - `deserialize_game(data: dict) -> BerkeleyGame` — restore engine from stored state
-  - `get_player_fen(game: BerkeleyGame, color: str) -> str` — extract sanitized display FEN for one player (own pieces only, no opponent pieces)
-  - `get_possible_actions(game: BerkeleyGame, color: str) -> list[str]` — return available actions ("move", "ask_any")
-- Modify `src/app/ws/game_handler.py` — handle `{"action": "move", "uci": "..."}` messages:
-  - Validate it's this player's turn
-  - Call `engine_adapter.attempt_move`
-  - Build player-specific response messages (moving player gets full answer, opponent gets filtered announcement — as defined in API_SPEC.md)
-  - Send via ConnectionManager
-  - Persist updated game state to MongoDB
-
-**Acceptance criteria:**
-- A legal move returns `move_result` with `move_done: true` to the moving player
-- An illegal move returns `move_result` with `ILLEGAL_MOVE` and `move_done: false`
-- The opponent receives `opponent_moved` with announcement but NOT the move itself
-- Game state is persisted to MongoDB after each successful move
-- Player FENs show only that player's pieces
-
----
-
-### 450 — Ask-Any, Resign, and Game-Over via WebSocket
-
-**Modify these files:**
-
-- `src/app/ws/game_handler.py` — handle remaining action types:
-  - `{"action": "ask_any"}` — call engine, send `any_result` to asking player and `opponent_asked_any` to opponent (per API_SPEC.md)
-  - `{"action": "resign"}` — call `GameService.resign_game`, send `game_over` to both players with full board FEN revealed
-  - Game-over detection: after each successful move, check if `game_over` is true. If so, send `game_over` message to both players, reveal full board, close WebSocket connections.
-- `src/app/services/game_service.py` — add `complete_game(game_id, winner, reason)` method:
-  - Set game result and state=completed
-  - Update both players' stats (games_played, games_won/lost/drawn, elo — simple elo calculation)
-  - Move game document from `games` to `game_archives`
-  - Write to `audit_log`
-
-**Acceptance criteria:**
-- `ask_any` returns "try" or "no" to the asking player and announces to opponent
-- `resign` ends the game and reveals the full board to both players
-- Checkmate/stalemate detection works via the engine
-- On game over: both players' stats are updated, game is archived
-- `game_over` message includes `full_board_fen` and result details
-
----
-
-### 460 — Game Cache and Clock
-
-**Create/modify these files:**
-
-- `src/app/ws/game_cache.py` — `GameCache` class as specified in ARCHITECTURE.md:
-  - LRU cache (`OrderedDict`) with max 500 entries
-  - `get(game_id) -> BerkeleyGame` — from cache or load from MongoDB
-  - `put(game_id, game)` — store in cache + async write to MongoDB
-  - `evict(game_id)` — remove from cache (game ended or idle)
-  - Idle games (no move for 30 min) evicted from cache
+- `src/app/routers/game.py` — add endpoint:
+  - `GET /api/game/{game_id}/state?player={color}` — returns player-specific game view:
+    ```json
+    {
+      "game_id": "...",
+      "your_color": "white",
+      "your_fen": "8/8/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
+      "turn": "black",
+      "move_number": 1,
+      "half_move_count": 1,
+      "state": "active",
+      "is_game_over": false,
+      "result": null,
+      "opponent_username": "player2",
+      "referee_log": [...last 20 announcements...],
+      "possible_actions": ["move", "ask_any"],
+      "clock": {
+        "white_remaining": 1498.5,
+        "black_remaining": 1500.0,
+        "active_color": "black"
+      }
+    }
+    ```
+  - `your_fen` uses `engine_adapter.get_visible_fen` — only shows this player's pieces
+  - `referee_log` is built from the `moves` array: extract announcements both players can see (captures, checks, ask-any results) but NOT the move itself or whether it was legal/illegal (only the moving player knows that)
+  - `possible_actions` returns what the player can do right now: `["move", "ask_any"]` on their turn, `[]` otherwise
+  - Auth required: user must be a participant in the game
 - `src/app/services/clock_service.py` — `ClockService`:
-  - `start_clock(game_id, color)` — record clock start time
-  - `stop_clock(game_id, color) -> float` — calculate elapsed, deduct from remaining, add increment, return remaining
-  - `check_timeout(game_id) -> str | None` — return color that timed out, or None
-  - Uses the time_control from game doc (base=1500s, increment=10s for rapid)
-- Integrate cache into `game_handler.py` — use cache instead of direct MongoDB reads for engine state
-- Integrate clock into move flow — start/stop clock on turns, send clock state in messages, check for timeout
+  - `get_remaining(game, color) -> float` — calculate current remaining time based on stored remaining + time elapsed since last move
+  - `deduct_and_increment(db, game_id, color) -> dict` — deduct elapsed time from moving player, add increment, store updated clock, return new clock state
+  - `check_timeout(game) -> str | None` — return color that timed out, or None
 
 **Acceptance criteria:**
-- Game cache reduces MongoDB reads during active gameplay
-- Clock deducts time correctly, adds increment after each move
-- Timeout detection works (player runs out of time → game over)
-- Clock state is included in all `move_result` and `opponent_moved` messages
-- Cache evicts idle games after 30 minutes
+- Polling returns player-specific FEN (no opponent pieces visible)
+- Referee log shows announcements visible to both players
+- Possible actions are correct for current turn
+- Clock remaining decreases between polls (calculated server-side)
+- Non-participant gets 403
 
 ---
 
-### 470 — WebSocket Gameplay Integration Tests
+### 440 — Game History and Recent Games Endpoints
 
-**Create this file:**
+**Create/modify these files:**
 
-- `src/tests/test_websocket_gameplay.py` — integration tests using httpx + WebSocket test client:
-  - Connect to game WebSocket → receive `connected` message with correct fields
-  - Connect without auth → WebSocket closed with 1008
-  - Connect as non-participant → closed with 4002
-  - Make a legal move → receive `move_result` with `move_done: true`
-  - Make an illegal move → receive `move_result` with `ILLEGAL_MOVE`
-  - Opponent receives `opponent_moved` on legal move (without seeing the move)
-  - Ask "any?" → receive `any_result`
-  - Resign → both players receive `game_over`
-  - Disconnect one player → opponent receives `opponent_status: disconnected`
-  - Reconnect → receive full game state, opponent notified
-  - Clock decrements on moves
-- `src/tests/test_engine_adapter.py` — unit tests for the engine adapter:
-  - Create new game → valid initial state
+- `src/app/routers/game.py` — add endpoints:
+  - `GET /api/game/{game_id}/moves` — full move transcript. Available to participants anytime, publicly after game ends. Checks `games` then `game_archives`.
+  - `GET /api/game/recent` — last 10 completed games from `game_archives` (for home page)
+- `src/app/services/game_service.py` — add:
+  - `get_game_or_archive(db, game_id) -> dict | None` — check `games` first, then `game_archives`
+  - `get_recent_completed(db, limit=10) -> list[dict]` — from `game_archives`, sorted by completed_at desc
+
+**Acceptance criteria:**
+- Move transcript endpoint returns all moves for a completed game
+- Active game transcript only accessible to participants
+- Recent games returns last 10 completed
+- Archived games are found by `get_game_or_archive`
+
+---
+
+### 450 — Gameplay Integration Tests
+
+**Create these files:**
+
+- `src/tests/test_gameplay.py` — integration tests:
+  - Make a legal move → game state updated, `move_done: true`
+  - Make an illegal move → `move_done: false`, state unchanged
+  - Move when not your turn → 400
+  - Ask-any → returns `has_any`
+  - Poll game state as white → only white pieces in FEN
+  - Poll game state as black → only black pieces in FEN
+  - Referee log shows announcements without leaking moves
+  - Resign → game completed, stats updated, game archived
+  - Clock deducts time on moves
+  - Non-participant can't poll or move → 403
+- `src/tests/test_engine_adapter.py` — unit tests:
+  - Create game → valid starting position
   - Legal move → correct answer
-  - Illegal move → ILLEGAL_MOVE answer
-  - Serialize/deserialize round-trip preserves game state
-  - Player FEN shows only own pieces
+  - Illegal move → ILLEGAL_MOVE
+  - Serialize/deserialize round-trip
+  - Visible FEN shows only one color's pieces
+  - Ask-any returns correct result
 
 **Acceptance criteria:**
-- `cd src && pytest tests/test_websocket_gameplay.py tests/test_engine_adapter.py -v` — all pass
-- At least 12 WebSocket tests and 6 engine adapter tests
-- Tests cover the main referee cases from GAME_ENGINE.md
+- `cd src && pytest tests/test_gameplay.py tests/test_engine_adapter.py -v` — all pass
+- At least 10 gameplay tests + 6 engine tests
+- Tests verify hidden-information is preserved
 
 ---
-
-## Required Tests Before Done
-
-- WebSocket integration tests for connect/move/ask-any/resign/game-over
-- Illegal move and hidden-information payload tests
-- Reconnect/pause/abandon tests
-- Clock timeout tests
 
 ## Exit Criteria
 
-- Two players can play a full game over WebSockets
-- Payloads preserve imperfect information correctly
-- Reconnect and timeout behavior works
-- Gameplay tests cover the main referee cases
+- Two authenticated users can play a game via REST API (create, join, make moves, resign)
+- Hidden information is preserved (each player only sees own pieces)
+- Ask-any question works
+- Clock tracks time
+- Game state is pollable
 
 ## Out of Scope
 
-- Final UI polish
-- Profile/history/leaderboard pages
-- Production deployment work
+- Board UI (step 500)
+- WebSocket (not in MVP)
+- Pause/reconnect (not in MVP)

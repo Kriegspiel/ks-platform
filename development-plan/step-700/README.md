@@ -2,12 +2,12 @@
 
 ## Goal
 
-Finish the operational layer: containers, proxying, CI, deployment, backup, logging, and runtime readiness.
+Finish the operational layer: Docker (with React build), NGINX, CI, backup, logging.
 
 ## Read First
 
 - [INFRA.md](../../INFRA.md)
-- [ARCHITECTURE.md](../../ARCHITECTURE.md)
+- [development-plan/PLAN.md](../PLAN.md)
 
 ## Depends On
 
@@ -15,31 +15,32 @@ Finish the operational layer: containers, proxying, CI, deployment, backup, logg
 
 ## Task Slices
 
-### 710 — Finalize Docker and Compose for Production
+### 710 — Finalize Docker for React + FastAPI
 
 **Modify these files:**
 
-- `src/app/Dockerfile` — review and finalize:
-  - Multi-stage build if needed (separate build/runtime stages)
-  - Non-root user for security
+- `src/app/Dockerfile` — finalize:
+  - Non-root user
   - Health check instruction
-  - Verify all app files are copied correctly
-  - Ensure static files are accessible via the shared volume
-- `docker-compose.yml` — review and finalize:
-  - Production profile: app + mongo + nginx + certbot (no mongo-express)
+  - Verify all app files copied correctly
+- `frontend/Dockerfile` — NEW, multi-stage build:
+  - Stage 1: `node:20-alpine`, install deps, `npm run build`
+  - Stage 2: output `dist/` folder (used by NGINX)
+- `docker-compose.yml` — finalize:
+  - `app` service: FastAPI backend only (no frontend serving)
+  - `frontend` service: build React, output to shared volume
+  - `nginx` service: serves React dist at `/`, proxies `/api/` and `/auth/` to app
+  - `mongo` service: with replica set
   - Dev profile: adds mongo-express
-  - Volume mounts for static files, TLS certs, mongo data
-  - Resource limits (memory, CPU) if appropriate
-  - Restart policies
-  - Network configuration
-- Test: `docker compose build` succeeds, `docker compose up` starts all services, app is healthy
+  - Production profile: adds certbot
+  - Shared volume for frontend build output → NGINX
 
 **Acceptance criteria:**
-- `docker compose build` succeeds with no warnings
-- `docker compose up -d` starts app, mongo, nginx
-- `docker compose ps` shows all services healthy
-- App serves pages through nginx at port 80
-- `docker compose --profile dev up` additionally starts mongo-express
+- `docker compose build` succeeds
+- `docker compose up -d` starts all services healthy
+- `http://localhost/` serves the React app via NGINX
+- `http://localhost/api/game/open` proxies to FastAPI
+- `docker compose --profile dev up` adds mongo-express
 
 ---
 
@@ -48,123 +49,99 @@ Finish the operational layer: containers, proxying, CI, deployment, backup, logg
 **Modify these files:**
 
 - `src/nginx/nginx.conf` — finalize:
-  - Rate limit zones: `api` (30r/s), `auth` (5r/m), `register` (3r/m), `ws_conn` (5 connections per IP)
-  - Gzip compression for text/html, text/css, application/json, application/javascript
-  - Security headers: X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy
-  - Worker processes and connections tuning
-- `src/nginx/conf.d/kriegspiel.conf` — finalize:
-  - HTTP→HTTPS redirect (port 80)
-  - TLS configuration with Let's Encrypt cert paths
-  - Static file serving with caching headers (30-day expiry, immutable)
-  - Proxy pass for `/api/`, `/auth/`, `/ws/`, `/` to app
-  - WebSocket proxy with upgrade headers and 1-hour timeouts
-  - Rate limiting references on auth and API locations
-  - ACME challenge location for certbot
-- Create `src/nginx/conf.d/kriegspiel-dev.conf` — HTTP-only config for local development (no TLS)
+  - Rate limit zones: api (30r/s), auth (5r/m)
+  - Gzip compression
+  - Security headers (X-Frame-Options, X-Content-Type-Options)
+- `src/nginx/conf.d/kriegspiel.conf` — production config:
+  - HTTP → HTTPS redirect
+  - TLS with Let's Encrypt cert paths
+  - Serve React `dist/` at `/` with `try_files $uri /index.html` (SPA routing)
+  - Proxy `/api/` and `/auth/` to app:8000
+  - Static asset caching (30-day expiry for `/assets/`)
+  - ACME challenge location
+- `src/nginx/conf.d/kriegspiel-dev.conf` — HTTP-only dev config (no TLS)
 
 **Acceptance criteria:**
 - NGINX starts without config errors
-- Static files are served directly by NGINX with cache headers
-- WebSocket connections work through NGINX (1-hour timeout)
-- Rate limiting works on `/auth/login` (test with curl)
-- Dev config works without TLS certificates
+- SPA routing works (direct URL access to `/lobby`, `/game/123` etc. serves React app)
+- API proxying works
+- Rate limiting on `/auth/login`
+- Dev config works without TLS certs
 
 ---
 
-### 730 — GitHub Actions CI Workflow
+### 730 — GitHub Actions CI
 
 **Create this file:**
 
-- `.github/workflows/ci.yml` — as specified in INFRA.md:
-  - Trigger: push to main, pull requests to main
-  - Test job:
+- `.github/workflows/ci.yml`:
+  - Trigger: push to main, PRs to main
+  - **Test job:**
     - MongoDB 7 service container
     - Python 3.12 setup
-    - Install requirements + dev requirements
+    - Install backend requirements
     - Lint: `black --check` + `ruff check`
-    - Test: `pytest tests/ --cov=app --cov-report=xml -v`
-    - Upload coverage to Codecov
-  - Deploy job (only on main push, after tests pass):
-    - SSH to VPS, git pull, docker compose build, docker compose up
-    - Uses GitHub secrets: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`
+    - Test: `pytest tests/ --cov=app -v`
+  - **Frontend job:**
+    - Node 20 setup
+    - `npm ci` + `npm run lint` + `npm run build`
+  - **Deploy job** (main push only, after both jobs pass):
+    - SSH to VPS, pull, build, restart
 
 **Acceptance criteria:**
-- CI workflow YAML is valid (test with `act` or push to a branch)
-- Lint step would catch formatting issues
-- Test step runs with MongoDB service
-- Deploy step is conditional on main branch push
+- CI YAML is valid
+- Backend lint + test steps defined
+- Frontend lint + build steps defined
+- Deploy conditional on main branch
 
 ---
 
-### 740 — Backup, Restore, and Health Scripts
+### 740 — Backup and Health Scripts
 
 **Create these files:**
 
-- `scripts/backup.sh` — daily MongoDB backup script from INFRA.md:
-  - `mongodump` with gzip to backup directory
-  - Retain last 30 days of backups
-  - Log backup success/failure
-  - Designed to run via cron (`0 3 * * *`)
-- `scripts/restore.sh` — restore from a backup:
-  - Takes backup file path as argument
-  - `mongorestore` from gzip archive
-  - Confirmation prompt before overwriting
-- `scripts/health-check.sh` — quick health verification:
-  - Curl `/health` endpoint
-  - Check Docker container status
-  - Check MongoDB replica set status
-  - Check disk space
-  - Output summary
-- Add cron setup instructions to script comments
+- `scripts/backup.sh` — daily MongoDB backup: mongodump + gzip, retain 30 days
+- `scripts/restore.sh` — restore from backup file (with confirmation prompt)
+- `scripts/health-check.sh` — curl /health, check container status, check disk space
 
 **Acceptance criteria:**
-- `backup.sh` runs without errors when MongoDB is available
-- `restore.sh` accepts a backup file and can restore it
-- `health-check.sh` reports status of all services
-- Scripts are executable (`chmod +x`)
+- Scripts are executable
+- `backup.sh` produces a gzipped backup file
+- `restore.sh` accepts a backup path
+- `health-check.sh` reports service status
 - Scripts have usage instructions in comments
 
 ---
 
-### 750 — Structured Logging and Health Finalization
+### 750 — Structured Logging
 
 **Modify these files:**
 
-- `src/app/config.py` — add `LOG_LEVEL` and `LOG_FORMAT` settings
-- `src/app/main.py` — configure structlog as specified in INFRA.md:
-  - JSON output in production
-  - Human-readable output in development
-  - Timestamp, log level, logger name in each entry
-- Add structured log calls to key operations:
-  - `src/app/routers/auth.py` — log register, login, logout, failed login attempts (with IP)
-  - `src/app/services/game_service.py` — log game create, join, resign, complete, abandon
-  - `src/app/ws/game_handler.py` — log WebSocket connect, disconnect, moves (game_id + color, not the move itself for security)
-- Verify `/health` endpoint works correctly under Docker with MongoDB health check
+- `src/app/main.py` — configure structlog:
+  - JSON in production, human-readable in development
+  - Timestamp + level in each entry
+- Add log calls to key operations:
+  - `src/app/routers/auth.py` — log register, login, failed login (with IP)
+  - `src/app/services/game_service.py` — log game create, join, resign, complete
+  - Move endpoint — log moves (game_id + color, not the move itself)
+- Verify logs don't include sensitive data (passwords, session IDs)
 
 **Acceptance criteria:**
 - App outputs structured JSON logs in production mode
-- Key events are logged with relevant context (game_id, user_id, IP for auth)
-- Logs do NOT include sensitive data (passwords, session tokens)
-- Health endpoint returns correct status under Docker
-- `docker compose logs app` shows clean structured output
+- Key events logged with context (game_id, user_id)
+- No sensitive data in logs
+- `docker compose logs app` shows clean output
 
 ---
 
-## Required Tests Before Done
-
-- `docker compose` boot test — all services start and are healthy
-- CI workflow dry run or equivalent local reproduction
-- Backup script dry run
-- Health endpoint and logging checks under containerized startup
-
 ## Exit Criteria
 
-- The app runs correctly via Docker Compose
-- CI can lint and test the repo
-- Backup and health mechanisms exist and are documented
-- The deployment path is documented well enough to execute without guesswork
+- App runs via Docker Compose with React frontend served by NGINX
+- CI lints and tests both backend and frontend
+- Backup/restore scripts exist
+- Structured logging works
 
 ## Out of Scope
 
-- Final production launch decision
-- Community/Phase 2 features
+- Final launch decision
+- Phase 2 features

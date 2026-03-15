@@ -2,14 +2,13 @@
 
 ## Goal
 
-Perform the final MVP hardening pass: regression testing, security/error-path checks, documentation cleanup, and launch checklist signoff.
+Final MVP hardening: regression testing, security checks, error path testing, documentation, launch checklist.
 
 ## Read First
 
 - [README.md](../../README.md)
 - [AUTH.md](../../AUTH.md)
 - [INFRA.md](../../INFRA.md)
-- [MILESTONES.md](../../MILESTONES.md)
 
 ## Depends On
 
@@ -21,76 +20,67 @@ Perform the final MVP hardening pass: regression testing, security/error-path ch
 
 **Actions:**
 
-- Run the complete test suite: `cd src && pytest tests/ --cov=app --cov-report=term-missing -v`
-- Fix any failing tests
-- Identify and write tests for any untested critical paths:
-  - Auth edge cases: expired session, concurrent login, session sliding
-  - Game lifecycle edge cases: join race condition, resign during pause, double resign
-  - WebSocket edge cases: message during reconnect, malformed messages, oversized messages
-  - Clock edge cases: timeout at exact 0, increment overflow
-- Target: >80% code coverage on `app/` package
+- Run full test suite: `cd src && pytest tests/ --cov=app --cov-report=term-missing -v`
+- Fix any failures
+- Write tests for untested critical paths:
+  - Auth edge cases: expired session, concurrent login
+  - Game lifecycle edge cases: join race condition, double resign
+  - Clock edge cases: timeout at 0, increment overflow
+  - Polling edge cases: poll completed game, poll as non-participant
+- Target: >80% code coverage
 
 **Acceptance criteria:**
-- Full test suite passes with 0 failures
-- Coverage report shows >80% line coverage
-- No critical paths are untested
-- Test results are recorded in step PROGRESS.md
+- Full suite passes with 0 failures
+- Coverage >80%
+- Results recorded in step PROGRESS.md
 
 ---
 
 ### 820 — Security Audit
 
-**Actions — test each manually or with scripts:**
+**Test each manually or with scripts:**
 
-- **Auth flows:**
-  - Verify `HttpOnly`, `Secure` (in prod), `SameSite=Lax` on session cookie
-  - Verify CSRF token is required on all POST/PATCH/DELETE routes
-  - Verify password is hashed with bcrypt (not stored in plaintext or weak hash)
-  - Verify expired sessions return 401 (not stale data)
-  - Verify rate limiting on `/auth/login` (5/min) and `/auth/register` (3/min)
-- **WebSocket security:**
-  - Verify Origin header validation on cookie-authenticated WebSocket connections
-  - Verify non-participant cannot connect to game WebSocket
-  - Verify game state is not leaked (opponent pieces never sent)
-  - Verify WebSocket close codes are correct (1008, 4002, 4003)
+- **Auth:**
+  - `HttpOnly`, `SameSite=Lax` on session cookie
+  - Passwords hashed with bcrypt (not plaintext)
+  - Expired sessions return 401
+  - Rate limiting on `/auth/login` (if NGINX is configured)
+- **Game security:**
+  - Non-participant can't poll game state (403)
+  - Player can't see opponent's pieces (FEN filtering)
+  - Phantom pieces never sent to server
+  - Can't move when it's not your turn
 - **Information leakage:**
-  - Verify error responses don't include stack traces in production mode
-  - Verify no sensitive data in logs (passwords, tokens, session IDs)
-  - Verify phantom pieces are never sent to/from the server
+  - Error responses don't include stack traces in production
+  - No sensitive data in logs
 - **Input validation:**
-  - Test oversized payloads (>64KB WebSocket messages rejected)
-  - Test malformed UCI strings
-  - Test SQL/NoSQL injection patterns in username, game_code fields
+  - Malformed UCI strings handled gracefully
+  - Oversized request bodies rejected
+  - Invalid game codes / user IDs handled
 
 **Acceptance criteria:**
 - All security checks pass
 - No information leakage found
-- Rate limiting works as configured
-- Findings and evidence recorded in step PROGRESS.md
+- Findings recorded in step PROGRESS.md
 
 ---
 
 ### 830 — Error Path Testing
 
-**Actions — test each scenario:**
+**Test each scenario:**
 
-- **Network failures:**
-  - MongoDB goes down during gameplay → health endpoint returns 503, games pause gracefully
-  - WebSocket disconnect during move processing → move is not lost, game state is consistent
-  - Client reconnect after server restart → game state is restored from MongoDB
-- **Game edge cases:**
-  - Both players disconnect simultaneously → game pauses, then abandons after 15 min
-  - Player sends move when it's not their turn → error response, game state unchanged
-  - Player tries to join a game that just filled → 409, not 500
-  - Very long game (>500 moves) → no performance degradation
-- **Concurrency:**
-  - Two players make moves at the same time → only the correct turn's move succeeds
-  - Multiple WebSocket connections from same user → only latest is active
+- MongoDB goes down → /health returns 503, game operations fail gracefully
+- Poll a game that was just completed → returns completed state, not error
+- Two players try to join the same game simultaneously → one succeeds, one gets 409
+- Very long game (>500 moves) → no performance issues
+- Invalid session cookie → 401, not 500
+- Move on completed game → appropriate error
+- Frontend handles API errors gracefully (shows message, doesn't crash)
 
 **Acceptance criteria:**
-- All error paths return appropriate error codes (not 500)
-- Game state remains consistent after error scenarios
-- No data corruption from edge cases
+- All error paths return proper error codes (not 500)
+- Game state remains consistent after errors
+- Frontend doesn't crash on API errors
 - Results recorded in step PROGRESS.md
 
 ---
@@ -100,28 +90,25 @@ Perform the final MVP hardening pass: regression testing, security/error-path ch
 **Modify/create these files:**
 
 - `README.md` — update to reflect actual implementation:
-  - Quick start guide (clone, .env, docker compose up)
-  - Local development setup (without Docker)
+  - Quick start (clone, .env, docker compose up)
+  - Local dev setup (backend: uvicorn, frontend: npm run dev)
   - Running tests
-  - Project structure overview
-  - Links to spec docs
-- `docs/DEPLOYMENT.md` — create operator deployment guide:
-  - VPS provisioning checklist (firewall, SSH, Docker)
+  - Project structure
+  - Architecture decisions (React, MongoDB, polling)
+- `docs/DEPLOYMENT.md` — operator guide:
+  - VPS provisioning (firewall, SSH, Docker)
   - DNS setup
-  - First deploy steps
-  - TLS certificate setup with certbot
-  - Updating / redeploying
-  - Backup setup (cron job for backup.sh)
-  - Monitoring setup (uptime service pointing at /health)
-  - Troubleshooting common issues
-- Review and update all spec docs (ARCHITECTURE.md, API_SPEC.md, etc.) for any divergence from actual implementation
-  - Remove or mark Phase 2 items clearly
-  - Fix any incorrect examples or outdated details
+  - First deploy
+  - TLS with certbot
+  - Backup cron setup
+  - Monitoring (/health)
+  - Troubleshooting
+- Note in spec docs where implementation diverges (React instead of Jinja2, polling instead of WebSocket, simplified lifecycle)
 
 **Acceptance criteria:**
-- A new developer can clone, set up, and run the project using only README.md
-- An operator can deploy to a VPS using docs/DEPLOYMENT.md
-- Spec docs match the actual implementation (no misleading info)
+- New developer can set up and run the project from README.md
+- Operator can deploy from docs/DEPLOYMENT.md
+- Divergences from spec docs are documented
 
 ---
 
@@ -129,53 +116,38 @@ Perform the final MVP hardening pass: regression testing, security/error-path ch
 
 **Create this file:**
 
-- `docs/LAUNCH_CHECKLIST.md` — comprehensive launch checklist:
-
-  **Pre-launch:**
-  - [ ] All tests pass (`pytest tests/ -v`)
-  - [ ] Docker Compose starts cleanly on fresh clone
+- `docs/LAUNCH_CHECKLIST.md`:
+  - [ ] All tests pass
+  - [ ] Docker Compose starts on fresh clone
   - [ ] Health endpoint returns 200
-  - [ ] Registration → login → create game → join game → play moves → resign works end-to-end
-  - [ ] Phantom pieces work on desktop and mobile
+  - [ ] Register → login → create → join → play → resign works end-to-end
+  - [ ] Phantom pieces work (desktop + mobile)
   - [ ] Promotion modal works
   - [ ] Clock ticks correctly
-  - [ ] Reconnection works (close tab, reopen)
-  - [ ] Review page shows completed game correctly
+  - [ ] Review page replays games correctly
   - [ ] Leaderboard shows ranked players
-  - [ ] Settings page saves preferences
-  - [ ] CSRF protection works (POST without token → 403)
-  - [ ] Rate limiting works (rapid login attempts → 429)
-  - [ ] Structured logs in production mode
-  - [ ] Backup script runs successfully
-  - [ ] SSL/TLS works (https://kriegspiel.org)
-  - [ ] www redirects to bare domain
-
-  **Residual risks:**
-  - Document any known issues, missing features, or technical debt
-  - Note Phase 2 items that were deferred
-  - List any manual operational steps needed
+  - [ ] Settings persist
+  - [ ] Hidden info preserved (can't see opponent pieces)
+  - [ ] Rate limiting works
+  - [ ] Structured logs in production
+  - [ ] Backup script works
+  - [ ] TLS works (https://kriegspiel.org)
+  - Residual risks documented
+  - Phase 2 deferrals listed
 
 **Acceptance criteria:**
-- Every checklist item is verified and checked off (or explicitly documented as deferred)
-- Residual risks are documented
-- The platform is ready for soft launch to initial users
+- Every item verified and checked off (or documented as deferred)
+- Platform ready for soft launch
 
 ---
 
-## Required Tests Before Done
-
-- Full automated test suite passes
-- Manual acceptance pass against MVP acceptance criteria
-- Security/error-path checks for auth, gameplay, and reconnect flows
-
 ## Exit Criteria
 
-- MVP acceptance criteria are verified against the real implementation
-- Critical regressions are resolved
-- Docs match reality closely enough for handoff and operation
-- Remaining risks are documented explicitly
+- MVP acceptance criteria verified
+- Critical regressions resolved
+- Docs match reality
+- Risks documented
 
 ## Out of Scope
 
-- Phase 2 implementation
-- New features outside MVP acceptance criteria
+- Phase 2 (WebSocket upgrade, OAuth, spectators, tournaments)

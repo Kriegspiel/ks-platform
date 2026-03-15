@@ -2,13 +2,13 @@
 
 ## Goal
 
-Create the runnable project skeleton and developer workflow foundation for the MVP.
+Create the runnable backend + frontend skeleton with MongoDB wiring, Docker setup, and test harness.
 
 ## Read First
 
-- [README.md](../../README.md)
-- [ARCHITECTURE.md](../../ARCHITECTURE.md)
-- [INFRA.md](../../INFRA.md)
+- [ARCHITECTURE.md](../../ARCHITECTURE.md) — system overview (note: frontend is React, not Jinja2)
+- [INFRA.md](../../INFRA.md) — Docker, NGINX, requirements
+- [development-plan/PLAN.md](../PLAN.md) — architecture decisions override specs
 
 ## Depends On
 
@@ -16,96 +16,127 @@ Create the runnable project skeleton and developer workflow foundation for the M
 
 ## Task Slices
 
-### 110 — Package Structure, Settings, App Factory, and Health Endpoint
+### 110 — Backend: App Factory, Settings, Health Endpoint
 
 **Create these files:**
 
 - `src/app/__init__.py` — empty
-- `src/app/main.py` — FastAPI app factory with lifespan context manager, CORS middleware setup, health endpoint
-- `src/app/config.py` — `Settings` class using `pydantic-settings` with fields: `SECRET_KEY`, `MONGO_URI`, `ENVIRONMENT` (dev/production), `LOG_LEVEL`, `SITE_ORIGIN`
+- `src/app/main.py` — FastAPI app with:
+  - App title "Kriegspiel Chess API"
+  - CORS middleware (allow `http://localhost:5173` for Vite dev, credentials=True)
+  - `/health` endpoint returning `{"status": "ok"}`
+  - Lifespan context manager (startup/shutdown hooks, wired in 120)
+- `src/app/config.py` — `Settings` class using `pydantic-settings`:
+  - `SECRET_KEY: str` (default: "dev-secret-change-me")
+  - `MONGO_URI: str` (default: "mongodb://localhost:27017/kriegspiel?replicaSet=rs0")
+  - `ENVIRONMENT: str` (default: "development")
+  - `LOG_LEVEL: str` (default: "info")
+  - `SITE_ORIGIN: str` (default: "http://localhost:5173")
 - `src/app/routers/__init__.py` — empty
 - `src/app/models/__init__.py` — empty
 - `src/app/services/__init__.py` — empty
-- `src/app/ws/__init__.py` — empty
 
 **Acceptance criteria:**
-- `cd src && python -c "from app.main import app; print(app.title)"` prints the app name
-- `Settings` loads from environment variables with sensible defaults for local dev
-- `/health` returns `{"status": "ok"}` (db check comes in 100.2)
-- CORS middleware configured per AUTH.md (allow localhost in dev mode)
+- `cd src && python -c "from app.main import app; print(app.title)"` prints "Kriegspiel Chess API"
+- `cd src && uvicorn app.main:app` starts and `/health` returns `{"status": "ok"}`
+- CORS allows requests from localhost:5173
 
 ---
 
 ### 120 — MongoDB Motor Wiring
 
-**Modify/create these files:**
+**Create/modify these files:**
 
-- `src/app/db.py` — async `get_db()` function, Motor client setup, `init_db()` to create indexes from DATA_MODEL.md, `close_db()` to shut down client
-- `src/app/main.py` — wire `init_db()`/`close_db()` into the lifespan context manager
-- Update `/health` to ping MongoDB and return `{"status": "ok", "db": "connected"}` or 503
+- `src/app/db.py`:
+  - `init_db(settings)` — create Motor async client, connect to database, create indexes from DATA_MODEL.md (users, games, sessions, game_archives, audit_log)
+  - `close_db()` — close Motor client
+  - `get_db()` — return the database handle
+- `src/app/main.py` — wire `init_db()`/`close_db()` into lifespan context manager, store db on `app.state.db`
+- Update `/health` to ping MongoDB: return `{"status": "ok", "db": "connected"}` or 503 with `{"status": "error", "db": "disconnected"}`
 
 **Acceptance criteria:**
-- App starts successfully when MongoDB is running locally
+- App starts when MongoDB is running locally
 - `/health` returns 200 with `db: connected` when Mongo is up
-- `/health` returns 503 when Mongo is unreachable
-- Index creation runs on startup (users, games, sessions, game_archives, audit_log collections)
+- `/health` returns 503 when Mongo is down
+- Indexes are created on startup
 
 ---
 
-### 130 — Dev Environment Files
+### 130 — React Frontend Scaffold
 
 **Create these files:**
 
-- `.env.example` — all env vars from INFRA.md with comments
-- `src/app/requirements.txt` — exact deps from INFRA.md
-- `src/app/requirements-dev.txt` — dev deps from INFRA.md (extends requirements.txt)
-- `src/app/Dockerfile` — from INFRA.md spec
-- `docker-compose.yml` — from INFRA.md spec (app, mongo, mongo-express, certbot, nginx services)
-- `src/nginx/nginx.conf` — base nginx config with rate limit zones in http block
-- `src/nginx/conf.d/kriegspiel.conf` — upstream + server blocks from INFRA.md (use HTTP-only for local dev, TLS for prod)
-- `src/mongo/init-replica.sh` — single-node replica set init from INFRA.md
+- `frontend/package.json` — dependencies: react, react-dom, react-router-dom, axios. Dev deps: vite, @vitejs/plugin-react, eslint, eslint-plugin-react-hooks
+- `frontend/vite.config.js` — React plugin, proxy `/api` and `/auth` to `http://localhost:8000` for dev
+- `frontend/index.html` — root HTML with `<div id="root">`
+- `frontend/src/main.jsx` — render `<App />` into `#root`
+- `frontend/src/App.jsx` — React Router with placeholder routes: `/`, `/auth/login`, `/auth/register`, `/lobby`, `/game/:gameId`
+- `frontend/src/App.css` — minimal base styles
+- `frontend/src/index.css` — reset/base styles
+- `frontend/src/services/api.js` — axios instance with `baseURL` (empty string — Vite proxy handles it), `withCredentials: true`
+- `frontend/.gitignore` — node_modules, dist
 
 **Acceptance criteria:**
-- `docker compose config` parses without errors
-- `docker compose --profile dev up --build` starts all services (app, mongo, mongo-express, nginx)
-- App is reachable at `http://localhost:8000/health` (direct) and `http://localhost/health` (via nginx)
+- `cd frontend && npm install && npm run dev` starts Vite dev server on port 5173
+- Navigating to `http://localhost:5173/` shows the app
+- API calls from the frontend proxy to `http://localhost:8000`
+- `npm run build` produces a `dist/` folder
 
 ---
 
-### 140 — Test Harness and Smoke Tests
+### 140 — Dev Environment Files
+
+**Create these files:**
+
+- `.env.example` — all env vars with comments (SECRET_KEY, MONGO_URI, ENVIRONMENT, LOG_LEVEL)
+- `src/app/requirements.txt` — from INFRA.md: fastapi, uvicorn[standard], motor, pydantic, pydantic-settings, bcrypt, python-jose[cryptography], kriegspiel>=1.1.2, structlog, python-multipart, httpx
+- `src/app/requirements-dev.txt` — extends requirements.txt: pytest, pytest-asyncio, pytest-cov, black, ruff
+- `src/app/Dockerfile` — Python 3.12-slim, install requirements, copy app code, expose 8000, CMD uvicorn
+- `docker-compose.yml` — services: app (build from src), mongo (mongo:7 with replica set), nginx, mongo-express (dev profile), certbot (production profile)
+- `src/nginx/nginx.conf` — http block with rate limit zones
+- `src/nginx/conf.d/kriegspiel-dev.conf` — HTTP-only dev config: proxy `/api/` and `/auth/` to app:8000, serve frontend dist at `/`
+- `src/mongo/init-replica.sh` — single-node replica set init
+
+**Acceptance criteria:**
+- `docker compose config` parses without errors
+- `docker compose --profile dev up --build` starts all services
+- App reachable at `http://localhost:8000/health`
+
+---
+
+### 150 — Test Harness and Smoke Tests
 
 **Create these files:**
 
 - `src/tests/__init__.py` — empty
-- `src/tests/conftest.py` — shared pytest fixtures: async test client (httpx `AsyncClient`), test MongoDB connection (use `kriegspiel_test` database), app fixture with test settings, db cleanup fixture
-- `src/tests/test_health.py` — test `/health` returns 200 and correct shape, test `/health` returns 503 when db is down (mock or skip)
-- `pyproject.toml` or `src/pyproject.toml` — pytest config (asyncio_mode=auto), black config (line-length=128), ruff config
+- `src/tests/conftest.py` — shared pytest fixtures:
+  - `test_settings` — Settings with test database name (`kriegspiel_test`)
+  - `test_app` — FastAPI app with test settings
+  - `test_client` — httpx `AsyncClient` bound to test app
+  - `db_cleanup` — drop test database after each test
+- `src/tests/test_health.py`:
+  - Test `/health` returns 200 with correct shape
+  - Test health check response includes db status
+- `pyproject.toml` — pytest config (asyncio_mode=auto), black config (line-length=128), ruff config
 
 **Acceptance criteria:**
 - `cd src && pytest tests/ -v` runs and passes
-- Test fixtures create/use a separate test database
-- Linting passes: `black --check --line-length 128 src/app src/tests` and `ruff check src/app src/tests`
+- Test fixtures use separate test database
+- `black --check --line-length 128 src/app` passes
+- `ruff check src/app` passes
 
 ---
 
-## Required Tests Before Done
-
-- `pytest tests/test_health.py` passes
-- App starts locally via `uvicorn app.main:app`
-- Health endpoint responds at `/health`
-- Docker Compose parses cleanly (`docker compose config`)
-- Lint passes
-
 ## Exit Criteria
 
-- The project layout matches the `src/` structure from ARCHITECTURE.md
-- `cd src && uvicorn app.main:app` starts successfully
-- The health endpoint works and checks MongoDB
-- Mongo wiring is present and testable
-- Smoke tests exist and pass
+- Backend starts with `uvicorn app.main:app` and serves `/health`
+- Frontend starts with `npm run dev` and renders placeholder pages
+- MongoDB wiring works (indexes created, health check pings)
+- Docker Compose starts all services
+- Smoke tests pass
 
 ## Out of Scope
 
-- Registration/login behavior
-- Game creation/join logic
-- WebSocket gameplay
+- Registration/login
+- Game logic
+- Styled UI

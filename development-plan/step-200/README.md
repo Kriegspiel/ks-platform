@@ -2,165 +2,185 @@
 
 ## Goal
 
-Implement secure user authentication, session handling, and the basic account entry pages.
+Implement user registration, login, logout, and session handling. Build React auth pages.
 
 ## Read First
 
-- [AUTH.md](../../AUTH.md)
-- [DATA_MODEL.md](../../DATA_MODEL.md)
-- [API_SPEC.md](../../API_SPEC.md)
+- [AUTH.md](../../AUTH.md) — password hashing, session model (ignore CSRF/middleware sections — we use a simpler approach)
+- [DATA_MODEL.md](../../DATA_MODEL.md) — users and sessions collections
+- [API_SPEC.md](../../API_SPEC.md) — auth endpoint contracts
+- [development-plan/PLAN.md](../PLAN.md) — architecture decisions
 
 ## Depends On
 
 - `step-100`
 
+## Auth Approach (Simplified vs. Spec)
+
+The spec describes session middleware + CSRF middleware. We use a simpler approach:
+
+- **Server-side sessions** in MongoDB (same as spec)
+- **HttpOnly cookie** with `SameSite=Lax` (same as spec)
+- **No CSRF middleware** — SameSite=Lax + API-only (no form submissions from server-rendered pages) is sufficient
+- **No session middleware** — use a FastAPI dependency (`get_current_user`) instead
+- **No sliding session expiry** — sessions last 30 days, period
+
 ## Task Slices
 
-### 210 — User and Session Pydantic Models
+### 210 — User Model, Password Hashing, UserService
 
 **Create these files:**
 
-- `src/app/models/user.py` — `UserDocument`, `UserStats`, `UserSettings`, `UserProfile` models exactly as defined in DATA_MODEL.md
-- `src/app/models/session.py` — `SessionDocument` model matching DATA_MODEL.md sessions collection schema (fields: `_id`, `user_id`, `username`, `csrf_token`, `ip`, `user_agent`, `created_at`, `expires_at`)
-- `src/app/models/auth.py` — `RegisterRequest`, `RegisterResponse`, `LoginRequest`, `LoginResponse` models exactly as defined in API_SPEC.md
+- `src/app/models/user.py` — Pydantic models from DATA_MODEL.md:
+  - `UserDocument` (username, username_display, email, password_hash, profile, stats, settings, role, status, timestamps)
+  - `UserStats`, `UserSettings`, `UserProfile` embedded models
+- `src/app/models/auth.py` — API request/response models from API_SPEC.md:
+  - `RegisterRequest` (username: 3-20 chars `[a-zA-Z0-9_]+`, password: 8-72 chars, email: optional)
+  - `RegisterResponse` (user_id, username, message)
+  - `LoginRequest` (username, password)
+  - `LoginResponse` (user_id, username)
+- `src/app/services/user_service.py` — `UserService` class:
+  - `hash_password(plain) -> str` — bcrypt with default cost
+  - `verify_password(plain, hashed) -> bool` — bcrypt check
+  - `create_user(db, username, password, email=None) -> dict` — lowercase username, store display case, hash password, insert into `users`, return user doc. Raise 409 on duplicate.
+  - `authenticate(db, username, password) -> dict | None` — lookup by lowercase username, verify password, return user or None
+  - `get_by_id(db, user_id) -> dict | None`
 
 **Acceptance criteria:**
-- All models instantiate with valid data and reject invalid data (e.g., username regex `^[a-zA-Z0-9_]+$`, min/max lengths)
-- Models match DATA_MODEL.md and API_SPEC.md schemas exactly
-- `cd src && python -c "from app.models.user import UserDocument; print('ok')"` works
+- `RegisterRequest` rejects usernames with spaces, passwords under 8 chars
+- `hash_password` / `verify_password` round-trip works
+- `create_user` inserts a user matching DATA_MODEL.md schema
+- `create_user` raises on duplicate username
+- `authenticate` returns None on wrong password
 
 ---
 
-### 220 — Password Hashing and UserService
+### 220 — Session Service and Auth API Endpoints
 
 **Create these files:**
 
-- `src/app/services/auth_helpers.py` — `hash_password(plain) -> str` and `verify_password(plain, hashed) -> bool` using bcrypt as specified in AUTH.md
-- `src/app/services/user_service.py` — `UserService` class with methods:
-  - `create_user(username, password, email=None) -> dict` — validates uniqueness, stores `username` (lowercase) + `username_display` (original case), hashes password, inserts into `users` collection, returns user doc
-  - `authenticate(username, password) -> dict | None` — looks up user by lowercase username, verifies password, returns user doc or None
-  - `get_by_id(user_id) -> dict | None`
-  - `get_by_username(username) -> dict | None`
-
-**Acceptance criteria:**
-- `hash_password` produces a bcrypt hash, `verify_password` matches it
-- `UserService.create_user` inserts a user matching the DATA_MODEL.md schema
-- `UserService.authenticate` returns None on wrong password, returns user on correct password
-- Duplicate username raises a handled error (409-style)
-
----
-
-### 230 — Session Service and Auth Router
-
-**Create these files:**
-
-- `src/app/services/session_service.py` — `SessionService` class with methods:
-  - `create_session(user_id, username, ip, user_agent) -> str` — generates 32-byte random hex session ID, generates CSRF token, inserts session doc with 30-day expiry, returns session_id
-  - `get_session(session_id) -> dict | None` — looks up session, returns None if expired/missing
-  - `delete_session(session_id)` — removes session doc
-  - `extend_session(session_id)` — updates `expires_at` to now + 30 days (sliding window)
-- `src/app/routers/auth.py` — FastAPI router with prefix `/auth`:
-  - `POST /auth/register` — validate `RegisterRequest`, call `UserService.create_user`, create session, set `session_id` cookie (HttpOnly, Secure in prod, SameSite=Lax, Max-Age=30 days), return `RegisterResponse`
-  - `POST /auth/login` — validate `LoginRequest`, call `UserService.authenticate`, create session, set cookie, return `LoginResponse`. Return 401 on bad credentials.
+- `src/app/services/session_service.py` — `SessionService`:
+  - `create_session(db, user_id, username, ip, user_agent) -> str` — generate 32-byte random hex ID, insert session doc (user_id, username, ip, user_agent, created_at, expires_at=now+30days), return session_id
+  - `get_session(db, session_id) -> dict | None` — lookup session, return None if missing/expired
+  - `delete_session(db, session_id)` — remove session doc
+- `src/app/dependencies.py`:
+  - `get_current_user(request) -> dict` — read `session_id` cookie, lookup session via SessionService, return `{user_id, username}` or raise 401. This is a FastAPI `Depends()` function, not middleware.
+- `src/app/routers/auth.py` — FastAPI router, prefix `/auth`:
+  - `POST /auth/register` — validate `RegisterRequest`, create user, create session, set `session_id` cookie (HttpOnly, SameSite=Lax, Max-Age=30 days, Secure=True only in production), return 201 `RegisterResponse`
+  - `POST /auth/login` — validate `LoginRequest`, authenticate, create session, set cookie, return 200 `LoginResponse`. Return 401 on bad credentials.
   - `POST /auth/logout` — delete session, clear cookie, return `{"message": "Logged out"}`
-  - `GET /auth/me` — return current user info (user_id, username, email, stats, settings) or 401
-- Wire the auth router into `src/app/main.py`
+  - `GET /auth/me` — uses `get_current_user` dependency, returns user info (user_id, username, email, stats, settings). Returns 401 if not authenticated.
+- Wire auth router into `src/app/main.py`
 
 **Acceptance criteria:**
-- `POST /auth/register` with valid data returns 201 + sets `session_id` cookie
+- `POST /auth/register` returns 201 + sets `session_id` cookie
 - `POST /auth/register` with duplicate username returns 409
-- `POST /auth/login` with valid credentials returns 200 + sets cookie
-- `POST /auth/login` with bad password returns 401
-- `POST /auth/logout` clears the session
-- `GET /auth/me` with valid session returns user data, without session returns 401
+- `POST /auth/login` with correct password returns 200 + sets cookie
+- `POST /auth/login` with wrong password returns 401
+- `POST /auth/logout` clears session and cookie
+- `GET /auth/me` with valid cookie returns user data
+- `GET /auth/me` without cookie returns 401
 
 ---
 
-### 240 — Session Middleware, CSRF, and Route Protection
+### 230 — React Auth Pages
+
+**Create these files:**
+
+- `frontend/src/context/AuthContext.jsx` — React context for auth state:
+  - `AuthProvider` wraps app, provides `{user, loading, login, register, logout}`
+  - On mount: call `GET /auth/me` to check if already logged in
+  - `login(username, password)` — call `POST /auth/login`, update state
+  - `register(username, password, email)` — call `POST /auth/register`, update state
+  - `logout()` — call `POST /auth/logout`, clear state
+- `frontend/src/pages/Login.jsx` — login form:
+  - Username + password inputs
+  - Submit calls `login()` from AuthContext
+  - Error display for invalid credentials
+  - Link to register page
+  - Redirect to `/lobby` on success
+- `frontend/src/pages/Register.jsx` — registration form:
+  - Username + password + optional email inputs
+  - Client-side validation (username 3-20 chars, password 8+ chars)
+  - Submit calls `register()` from AuthContext
+  - Error display for duplicates/validation
+  - Link to login page
+  - Redirect to `/lobby` on success
+- `frontend/src/services/api.js` — add auth API functions:
+  - `authApi.register(username, password, email)`
+  - `authApi.login(username, password)`
+  - `authApi.logout()`
+  - `authApi.me()`
+- `frontend/src/App.jsx` — wrap with `AuthProvider`, add Login/Register routes, add nav bar showing user state (logged in → username + logout, logged out → login/register links)
+
+**Acceptance criteria:**
+- Login page renders with form
+- Registration page renders with form
+- Successful login redirects to /lobby
+- Failed login shows error message
+- Nav bar reflects auth state
+- Page refresh preserves login state (cookie persists)
+
+---
+
+### 240 — React Auth Styles
 
 **Create/modify these files:**
 
-- `src/app/middleware/session.py` — `SessionMiddleware` (BaseHTTPMiddleware) that reads `session_id` cookie, looks up session, populates `request.state.user` with `{user_id, username}` or sets to None. Extends session expiry on activity (sliding window). Exactly as specified in AUTH.md.
-- `src/app/middleware/csrf.py` — CSRF middleware that on POST/PATCH/DELETE requests (except API-token-authenticated requests): checks `_csrf` form field or `X-CSRF-Token` header against session's `csrf_token`. Returns 403 on mismatch.
-- `src/app/dependencies.py` — `require_auth` dependency (FastAPI `Depends`) that checks `request.state.user` and raises 401 if None. `require_admin` dependency that additionally checks user role.
-- Wire both middlewares into `src/app/main.py` (session middleware must run before CSRF middleware)
+- `frontend/src/pages/Login.css` — login form styling (centered card, input fields, button, error area)
+- `frontend/src/pages/Register.css` — registration form styling (same pattern)
+- `frontend/src/components/Nav.jsx` — navigation bar component:
+  - Logo (♞ Kriegspiel) linking to /
+  - Auth area: login/register links when logged out, username + logout button when logged in
+  - Active game indicator (placeholder for step 300)
+- `frontend/src/components/Nav.css` — nav styling
+- `frontend/src/App.jsx` — use Nav component in layout
 
 **Acceptance criteria:**
-- Requests with valid session cookie get `request.state.user` populated
-- Requests without session cookie get `request.state.user = None`
-- POST requests without valid CSRF token return 403
-- POST requests with valid CSRF token succeed
-- `require_auth` raises 401 for unauthenticated requests
-- Session sliding window works (expires_at gets extended on each request)
+- Auth pages are styled and usable
+- Nav bar shows on all pages
+- Nav reflects auth state correctly
+- Forms have basic visual feedback (loading state, errors)
 
 ---
 
-### 250 — Login and Register Pages
+### 250 — Auth Integration Tests
 
-**Create these files:**
+**Create this file:**
 
-- `src/app/templates/base.html` — base Jinja2 layout with `<head>` (meta, CSS link), `<nav>` (logo, login/logout links based on user state), `<main>` block, HTMX script tag, CSRF token in `hx-headers`
-- `src/app/templates/login.html` — extends base, login form with username + password fields, error display area, link to register page. Form posts to `/auth/login`.
-- `src/app/templates/register.html` — extends base, registration form with username + password + optional email fields, validation error display, link to login page. Form posts to `/auth/register`.
-- `src/app/routers/pages.py` — FastAPI router for server-rendered pages:
-  - `GET /auth/login` — render login.html (redirect to /lobby if already logged in)
-  - `GET /auth/register` — render register.html (redirect to /lobby if already logged in)
-  - Modify auth router POST handlers to handle form submissions (redirect on success, re-render with errors on failure)
-- Wire pages router into `src/app/main.py`, configure Jinja2 templates directory
-
-**Acceptance criteria:**
-- `GET /auth/login` renders an HTML page with a login form
-- `GET /auth/register` renders an HTML page with a registration form
-- Submitting the login form with valid credentials redirects to `/lobby` (or `/` for now)
-- Submitting with invalid credentials re-renders the form with an error message
-- Forms include hidden `_csrf` field
-- Nav shows login/register links when logged out, username + logout when logged in
-
----
-
-### 260 — Auth Integration Tests
-
-**Create these files:**
-
-- `src/tests/test_auth.py` — integration tests covering:
-  - Register with valid data → 201 + session cookie set
+- `src/tests/test_auth.py` — integration tests:
+  - Register with valid data → 201 + cookie set
   - Register with duplicate username → 409
   - Register with invalid username (too short, bad chars) → 422
   - Register with short password → 422
-  - Login with valid credentials → 200 + session cookie
+  - Login with valid credentials → 200 + cookie
   - Login with wrong password → 401
   - Login with nonexistent user → 401
   - Logout → session deleted, cookie cleared
   - `GET /auth/me` with valid session → 200 + user data
   - `GET /auth/me` without session → 401
-  - CSRF: POST without token → 403
-  - CSRF: POST with valid token → success
-  - Session sliding: session `expires_at` is extended on request
-- `src/tests/test_password.py` — unit tests for `hash_password`/`verify_password`
+  - `GET /auth/me` with expired/invalid session → 401
+- `src/tests/test_password.py` — unit tests:
+  - `hash_password` produces bcrypt hash
+  - `verify_password` matches correct password
+  - `verify_password` rejects wrong password
 
 **Acceptance criteria:**
 - `cd src && pytest tests/test_auth.py tests/test_password.py -v` — all pass
-- Tests use the test database and clean up after themselves
-- At least 15 test cases covering happy paths and error cases
+- At least 12 test cases
+- Tests use test database and clean up
 
 ---
 
-## Required Tests Before Done
-
-- Unit tests for password hashing and auth service behavior
-- Integration tests for register/login/logout/session flows
-- CSRF/session tests for protected POST routes
-
 ## Exit Criteria
 
-- Users can register, log in, log out, and fetch current session state
-- Sessions are stored server-side and hydrated correctly
-- CSRF protection is present on form-based writes
-- Login and registration pages work end-to-end
+- Users can register, log in, log out, and check session
+- React auth pages work end-to-end
+- Session cookies are set correctly (HttpOnly, SameSite=Lax)
 
 ## Out of Scope
 
-- Lobby/game APIs
+- CSRF middleware (not needed with SameSite + API-only)
 - OAuth
-- WebSocket gameplay
-- API token auth (JWT) — added later when WebSocket needs it
+- Game logic
+- API token auth (JWT)
