@@ -1,14 +1,15 @@
 # Step 400 Progress
 
 Status: NOT STARTED
-Last Updated: 2026-03-15
+Last Updated: 2026-03-16
 
 ## Slice Checklist
 
-- [ ] `400.1` WebSocket auth, heartbeat, and reconnect flow
-- [ ] `400.2` Engine-backed gameplay actions
-- [ ] `400.3` Clock and timeout handling
-- [ ] `400.4` Cache/archive behavior and gameplay coverage
+- [ ] `410` Engine adapter
+- [ ] `420` Move and ask-any endpoints
+- [ ] `430` Game state polling endpoint + clock
+- [ ] `440` Game history and recent games endpoints
+- [ ] `450` Gameplay integration tests
 
 ## Test Evidence
 
@@ -20,7 +21,7 @@ Last Updated: 2026-03-15
 
 ## Notes
 
-- Record representative gameplay cases covered by tests.
+- Polling-based (no WebSocket). Clock is server-side, returned in poll response.
 
 ## Handoff
 

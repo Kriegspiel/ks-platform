@@ -1,14 +1,15 @@
 # Step 600 Progress
 
 Status: NOT STARTED
-Last Updated: 2026-03-15
+Last Updated: 2026-03-16
 
 ## Slice Checklist
 
-- [ ] `600.1` Archive-backed profile and history reads
-- [ ] `600.2` Profile, history, leaderboard, and settings pages
-- [ ] `600.3` Review/replay data flow and UI
-- [ ] `600.4` Pagination, persistence, and tests
+- [ ] `610` Profile, history, and leaderboard API
+- [ ] `620` Review/replay API and React review page
+- [ ] `630` React profile, history, leaderboard, settings pages
+- [ ] `640` Direct join URL
+- [ ] `650` Player feature integration tests
 
 ## Test Evidence
 
@@ -20,7 +21,7 @@ Last Updated: 2026-03-15
 
 ## Notes
 
-- Keep replay correctness evidence here.
+- Review page needs move-by-move replay with 3 perspectives (referee/white/black).
 
 ## Handoff
 

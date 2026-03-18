@@ -1,14 +1,15 @@
 # Step 700 Progress
 
 Status: NOT STARTED
-Last Updated: 2026-03-15
+Last Updated: 2026-03-16
 
 ## Slice Checklist
 
-- [ ] `700.1` Containers and proxy configuration
-- [ ] `700.2` CI and deployment workflow
-- [ ] `700.3` Backup, env handling, logging, and health
-- [ ] `700.4` Deploy/operator workflow validation
+- [ ] `710` Finalize Docker for React + FastAPI
+- [ ] `720` NGINX production configuration
+- [ ] `730` GitHub Actions CI
+- [ ] `740` Backup and health scripts
+- [ ] `750` Structured logging
 
 ## Test Evidence
 
@@ -20,7 +21,7 @@ Last Updated: 2026-03-15
 
 ## Notes
 
-- Record compose boot evidence and backup dry-run evidence here.
+- Docker needs multi-stage build for React frontend.
 
 ## Handoff
 

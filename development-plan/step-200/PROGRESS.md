@@ -1,14 +1,15 @@
 # Step 200 Progress
 
 Status: NOT STARTED
-Last Updated: 2026-03-15
+Last Updated: 2026-03-16
 
 ## Slice Checklist
 
-- [ ] `200.1` Users, sessions, indexes, and password helpers
-- [ ] `200.2` Register/login/logout/session endpoints
-- [ ] `200.3` Middleware, auth guards, and CSRF
-- [ ] `200.4` Login and registration pages
+- [ ] `210` User model, password hashing, UserService
+- [ ] `220` Session service and auth API endpoints
+- [ ] `230` React auth pages
+- [ ] `240` React auth styles
+- [ ] `250` Auth integration tests
 
 ## Test Evidence
 

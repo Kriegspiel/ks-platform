@@ -1,14 +1,15 @@
 # Step 800 Progress
 
 Status: NOT STARTED
-Last Updated: 2026-03-15
+Last Updated: 2026-03-16
 
 ## Slice Checklist
 
-- [ ] `800.1` Full regression pass and critical fixes
-- [ ] `800.2` Security and error-path verification
-- [ ] `800.3` Documentation cleanup against reality
-- [ ] `800.4` Launch checklist and residual risk log
+- [ ] `810` Full regression suite
+- [ ] `820` Security audit
+- [ ] `830` Error path testing
+- [ ] `840` Documentation cleanup
+- [ ] `850` Launch checklist signoff
 
 ## Test Evidence
 

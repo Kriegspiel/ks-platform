@@ -1,14 +1,15 @@
 # Step 300 Progress
 
 Status: NOT STARTED
-Last Updated: 2026-03-15
+Last Updated: 2026-03-16
 
 ## Slice Checklist
 
-- [ ] `300.1` Service-layer lifecycle and state transitions
-- [ ] `300.2` REST endpoints for lifecycle actions and reads
-- [ ] `300.3` Minimal lobby page flow
-- [ ] `300.4` Archive-aware reads where needed
+- [ ] `310` Game models and code generator
+- [ ] `320` GameService: create, join, resign
+- [ ] `330` Game REST endpoints
+- [ ] `340` React lobby page
+- [ ] `350` Game lifecycle integration tests
 
 ## Test Evidence
 
@@ -20,7 +21,7 @@ Last Updated: 2026-03-15
 
 ## Notes
 
-- Record waiting-game expiry evidence here before marking this step `DONE`.
+- Simplified lifecycle: waiting → active → completed (3 states only).
 
 ## Handoff
 
