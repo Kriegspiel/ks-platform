@@ -18,6 +18,8 @@ Create the runnable backend + frontend skeleton with MongoDB wiring, Docker setu
 
 ### 110 — Backend: App Factory, Settings, Health Endpoint
 
+Detailed execution packet: [development-plan/step-110](../step-110/README.md)
+
 **Create these files:**
 
 - `src/app/__init__.py` — empty
@@ -37,13 +39,18 @@ Create the runnable backend + frontend skeleton with MongoDB wiring, Docker setu
 - `src/app/services/__init__.py` — empty
 
 **Acceptance criteria:**
-- `cd src && python -c "from app.main import app; print(app.title)"` prints "Kriegspiel Chess API"
-- `cd src && uvicorn app.main:app` starts and `/health` returns `{"status": "ok"}`
-- CORS allows requests from localhost:5173
+- `cd src && pytest tests/test_config.py tests/test_app_factory.py tests/test_health.py -v` passes
+- Automated tests confirm `from app.main import app` builds an app titled "Kriegspiel Chess API"
+- Automated tests confirm `/health` returns exactly `{"status": "ok"}`
+- Automated tests confirm CORS allows requests from localhost:5173 with credentials enabled
+
+Manual `uvicorn` and `curl` smoke checks are optional for debugging, but this slice is not complete without the automated checks defined in [development-plan/step-110/TESTING.md](../step-110/TESTING.md).
 
 ---
 
 ### 120 — MongoDB Motor Wiring
+
+Detailed execution packet: [development-plan/step-120](../step-120/README.md)
 
 **Create/modify these files:**
 
@@ -55,14 +62,18 @@ Create the runnable backend + frontend skeleton with MongoDB wiring, Docker setu
 - Update `/health` to ping MongoDB: return `{"status": "ok", "db": "connected"}` or 503 with `{"status": "error", "db": "disconnected"}`
 
 **Acceptance criteria:**
-- App starts when MongoDB is running locally
-- `/health` returns 200 with `db: connected` when Mongo is up
-- `/health` returns 503 when Mongo is down
-- Indexes are created on startup
+- `cd src && pytest tests/test_db.py tests/test_health.py -v` passes
+- Automated tests confirm `/health` returns 200 with `{"status": "ok", "db": "connected"}` when Mongo is reachable
+- Automated tests confirm `/health` returns 503 with `{"status": "error", "db": "disconnected"}` when Mongo is unavailable
+- Automated tests confirm the required MongoDB indexes are created
+
+Manual testing against a developer-started MongoDB instance is optional for debugging, but this slice is not complete without the automated checks defined in [development-plan/step-120/TESTING.md](../step-120/TESTING.md).
 
 ---
 
 ### 130 — React Frontend Scaffold
+
+Detailed execution packet: [development-plan/step-130](../step-130/README.md)
 
 **Create these files:**
 
@@ -77,18 +88,23 @@ Create the runnable backend + frontend skeleton with MongoDB wiring, Docker setu
 - `frontend/.gitignore` — node_modules, dist
 
 **Acceptance criteria:**
-- `cd frontend && npm install && npm run dev` starts Vite dev server on port 5173
-- Navigating to `http://localhost:5173/` shows the app
-- API calls from the frontend proxy to `http://localhost:8000`
-- `npm run build` produces a `dist/` folder
+- `cd frontend && npm install` succeeds
+- `cd frontend && npm run test -- --run` passes
+- `cd frontend && npm run lint` passes
+- `cd frontend && npm run build` produces a `dist/` folder
+- Automated tests confirm the placeholder routes render and the Axios client uses the dev proxy strategy
+
+Manual browser checks are optional for debugging, but this slice is not complete without the automated checks defined in [development-plan/step-130/TESTING.md](../step-130/TESTING.md).
 
 ---
 
 ### 140 — Dev Environment Files
 
+Detailed execution packet: [development-plan/step-140](../step-140/README.md)
+
 **Create these files:**
 
-- `.env.example` — all env vars with comments (SECRET_KEY, MONGO_URI, ENVIRONMENT, LOG_LEVEL)
+- `.env.example` — all env vars with comments (SECRET_KEY, MONGO_URI, ENVIRONMENT, LOG_LEVEL, SITE_ORIGIN, ME_USERNAME, ME_PASSWORD)
 - `src/app/requirements.txt` — from INFRA.md: fastapi, uvicorn[standard], motor, pydantic, pydantic-settings, bcrypt, python-jose[cryptography], kriegspiel>=1.1.2, structlog, python-multipart, httpx
 - `src/app/requirements-dev.txt` — extends requirements.txt: pytest, pytest-asyncio, pytest-cov, black, ruff
 - `src/app/Dockerfile` — Python 3.12-slim, install requirements, copy app code, expose 8000, CMD uvicorn
@@ -99,12 +115,18 @@ Create the runnable backend + frontend skeleton with MongoDB wiring, Docker setu
 
 **Acceptance criteria:**
 - `docker compose config` parses without errors
-- `docker compose --profile dev up --build` starts all services
-- App reachable at `http://localhost:8000/health`
+- `docker build -f src/app/Dockerfile src` passes
+- Automated NGINX syntax validation passes
+- Automated replica-init script validation passes
+- `docker compose --profile dev up -d --build` starts the dev stack and automated health probing succeeds
+
+Manual stack inspection is optional for debugging, but this slice is not complete without the automated checks defined in [development-plan/step-140/TESTING.md](../step-140/TESTING.md).
 
 ---
 
 ### 150 — Test Harness and Smoke Tests
+
+Detailed execution packet: [development-plan/step-150](../step-150/README.md)
 
 **Create these files:**
 
@@ -121,9 +143,12 @@ Create the runnable backend + frontend skeleton with MongoDB wiring, Docker setu
 
 **Acceptance criteria:**
 - `cd src && pytest tests/ -v` runs and passes
+- `cd src && pytest tests --cov=app --cov-report=xml -v` runs and passes
 - Test fixtures use separate test database
-- `black --check --line-length 128 src/app` passes
-- `ruff check src/app` passes
+- `cd src && black --check app tests` passes
+- `cd src && ruff check app tests` passes
+
+This slice is not complete without the automated checks defined in [development-plan/step-150/TESTING.md](../step-150/TESTING.md).
 
 ---
 
