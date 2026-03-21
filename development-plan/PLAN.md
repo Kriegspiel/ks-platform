@@ -57,3 +57,7 @@ Each slice is designed to be completable in a single ~$20 agent session (~15-20 
 ## Detailed Slice Packets
 
 - [step-110](./step-110/README.md) expands slice `110` from `step-100` into a dedicated implementation and automated-testing packet.
+- [step-120](./step-120/README.md) expands slice `120` from `step-100` into a dedicated implementation and automated-testing packet.
+- [step-130](./step-130/README.md) expands slice `130` from `step-100` into a dedicated implementation and automated-testing packet.
+- [step-140](./step-140/README.md) expands slice `140` from `step-100` into a dedicated implementation and automated-testing packet.
+- [step-150](./step-150/README.md) expands slice `150` from `step-100` into a dedicated implementation and automated-testing packet.
