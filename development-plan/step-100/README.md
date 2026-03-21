@@ -18,6 +18,8 @@ Create the runnable backend + frontend skeleton with MongoDB wiring, Docker setu
 
 ### 110 — Backend: App Factory, Settings, Health Endpoint
 
+Detailed execution packet: [development-plan/step-110](../step-110/README.md)
+
 **Create these files:**
 
 - `src/app/__init__.py` — empty
@@ -37,9 +39,12 @@ Create the runnable backend + frontend skeleton with MongoDB wiring, Docker setu
 - `src/app/services/__init__.py` — empty
 
 **Acceptance criteria:**
-- `cd src && python -c "from app.main import app; print(app.title)"` prints "Kriegspiel Chess API"
-- `cd src && uvicorn app.main:app` starts and `/health` returns `{"status": "ok"}`
-- CORS allows requests from localhost:5173
+- `cd src && pytest tests/test_config.py tests/test_app_factory.py tests/test_health.py -v` passes
+- Automated tests confirm `from app.main import app` builds an app titled "Kriegspiel Chess API"
+- Automated tests confirm `/health` returns exactly `{"status": "ok"}`
+- Automated tests confirm CORS allows requests from localhost:5173 with credentials enabled
+
+Manual `uvicorn` and `curl` smoke checks are optional for debugging, but this slice is not complete without the automated checks defined in [development-plan/step-110/TESTING.md](../step-110/TESTING.md).
 
 ---
 

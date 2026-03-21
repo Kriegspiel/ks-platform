@@ -50,4 +50,10 @@ Each slice is designed to be completable in a single ~$20 agent session (~15-20 
 - A single agent should pick up **one slice at a time**, not a whole step.
 - Every step must have passing tests before it can be marked `DONE`.
 - Each slice has specific file lists, acceptance criteria, and a clear "done" definition.
+- Some slices may also get their own detailed execution packet in a folder such as `step-110/` when the slice needs multiple planning documents.
+- When that happens, the slice packet expands the parent step's slice; it does not become a new top-level rollup step unless this file explicitly says so.
 - Where this plan conflicts with spec docs (ARCHITECTURE.md, FRONTEND.md, AUTH.md, etc.), **this plan wins**.
+
+## Detailed Slice Packets
+
+- [step-110](./step-110/README.md) expands slice `110` from `step-100` into a dedicated implementation and automated-testing packet.
