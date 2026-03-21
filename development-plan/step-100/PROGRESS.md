@@ -22,7 +22,7 @@ Last Updated: 2026-03-20
 ## Notes
 
 - Record exact test commands and outcomes here before marking any slice `DONE`.
-- Detailed execution and automated test planning for slices `110`, `120`, `130`, `140`, and `150` now lives in their dedicated folders under `development-plan/`.
+- Detailed execution and automated test planning for slices `110`, `120`, `130`, `140`, and `150` now lives in their dedicated folders under `development-plan/step-100/`.
 
 ## Handoff
 

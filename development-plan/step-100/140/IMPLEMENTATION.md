@@ -48,7 +48,7 @@ At minimum, include the packages already committed to the active plan:
 - `python-multipart`
 - `httpx`
 
-Pin versions consistently with the guidance in [INFRA.md](../../INFRA.md).
+Pin versions consistently with the guidance in [INFRA.md](../../../INFRA.md).
 
 Do not add frontend-only packages here.
 

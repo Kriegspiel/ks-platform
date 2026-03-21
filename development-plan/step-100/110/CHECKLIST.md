@@ -4,10 +4,10 @@ Use this as the execution checklist when implementing slice `110`.
 
 ## Planning And Context
 
-- [ ] Re-read [development-plan/README.md](../README.md)
-- [ ] Re-read [development-plan/PLAN.md](../PLAN.md)
-- [ ] Re-read [step-100 README](../step-100/README.md)
-- [ ] Claim slice `110` in [step-100/PROGRESS.md](../step-100/PROGRESS.md)
+- [ ] Re-read [development-plan/README.md](../../README.md)
+- [ ] Re-read [development-plan/PLAN.md](../../PLAN.md)
+- [ ] Re-read [step-100 README](../README.md)
+- [ ] Claim slice `110` in [step-100/PROGRESS.md](../PROGRESS.md)
 
 ## Files To Create
 
@@ -58,7 +58,7 @@ Use this as the execution checklist when implementing slice `110`.
 
 ## Before Marking Done
 
-- [ ] Record the exact command results in [step-100/PROGRESS.md](../step-100/PROGRESS.md)
+- [ ] Record the exact command results in [step-100/PROGRESS.md](../PROGRESS.md)
 - [ ] Confirm no test required MongoDB
 - [ ] Confirm no manual smoke check is being used as the only signoff
 - [ ] Leave clear handoff notes for slice `120` and slice `150`

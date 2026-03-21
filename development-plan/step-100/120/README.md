@@ -1,8 +1,8 @@
 # Step 120 - MongoDB Motor Wiring
 
-This folder is the detailed execution packet for slice `120` from [step-100](../step-100/README.md).
+This folder is the detailed execution packet for slice `120` from [step-100](../README.md).
 
-Canonical status for this slice still lives in [step-100/PROGRESS.md](../step-100/PROGRESS.md). This folder expands the slice into implementation-ready planning docs; it does not create a new top-level rollup step.
+Canonical status for this slice still lives in [step-100/PROGRESS.md](../PROGRESS.md). This folder expands the slice into implementation-ready planning docs; it does not create a new top-level rollup step.
 
 ## Goal
 
@@ -21,13 +21,13 @@ Without this slice, later work in auth, lobby, and gameplay would each invent th
 
 ## Read First
 
-- [development-plan/README.md](../README.md)
-- [development-plan/PLAN.md](../PLAN.md)
-- [step-100 README](../step-100/README.md)
-- [step-110 README](../step-110/README.md)
-- [DATA_MODEL.md](../../DATA_MODEL.md)
-- [INFRA.md](../../INFRA.md)
-- [AUTH.md](../../AUTH.md)
+- [development-plan/README.md](../../README.md)
+- [development-plan/PLAN.md](../../PLAN.md)
+- [step-100 README](../README.md)
+- [step-110 README](../110/README.md)
+- [DATA_MODEL.md](../../../DATA_MODEL.md)
+- [INFRA.md](../../../INFRA.md)
+- [AUTH.md](../../../AUTH.md)
 
 ## Scope
 
@@ -76,7 +76,7 @@ The finished code must satisfy all of the following:
 1. Read [IMPLEMENTATION.md](./IMPLEMENTATION.md)
 2. Read [TESTING.md](./TESTING.md)
 3. Read [CHECKLIST.md](./CHECKLIST.md)
-4. Claim slice `120` in [step-100/PROGRESS.md](../step-100/PROGRESS.md) before writing code
+4. Claim slice `120` in [step-100/PROGRESS.md](../PROGRESS.md) before writing code
 
 ## Definition Of Done
 
@@ -84,7 +84,7 @@ This slice is done only when:
 
 - the implementation matches [IMPLEMENTATION.md](./IMPLEMENTATION.md),
 - every required automated check in [TESTING.md](./TESTING.md) passes,
-- exact commands and results are recorded in [step-100/PROGRESS.md](../step-100/PROGRESS.md), and
+- exact commands and results are recorded in [step-100/PROGRESS.md](../PROGRESS.md), and
 - the database-connected and database-disconnected `/health` cases are both covered by automation.
 
 Manual testing against a developer-started MongoDB instance is optional for debugging, but it does not count as primary signoff evidence.

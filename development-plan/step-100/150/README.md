@@ -1,8 +1,8 @@
 # Step 150 - Test Harness And Smoke Tests
 
-This folder is the detailed execution packet for slice `150` from [step-100](../step-100/README.md).
+This folder is the detailed execution packet for slice `150` from [step-100](../README.md).
 
-Canonical status for this slice still lives in [step-100/PROGRESS.md](../step-100/PROGRESS.md). This folder expands the slice into implementation-ready planning docs; it does not create a new top-level rollup step.
+Canonical status for this slice still lives in [step-100/PROGRESS.md](../PROGRESS.md). This folder expands the slice into implementation-ready planning docs; it does not create a new top-level rollup step.
 
 ## Goal
 
@@ -20,12 +20,12 @@ Earlier slices can create targeted tests, but this slice is where the repo gets 
 
 ## Read First
 
-- [development-plan/README.md](../README.md)
-- [development-plan/PLAN.md](../PLAN.md)
-- [step-100 README](../step-100/README.md)
-- [step-110 README](../step-110/README.md)
-- [step-120 README](../step-120/README.md)
-- [INFRA.md](../../INFRA.md)
+- [development-plan/README.md](../../README.md)
+- [development-plan/PLAN.md](../../PLAN.md)
+- [step-100 README](../README.md)
+- [step-110 README](../110/README.md)
+- [step-120 README](../120/README.md)
+- [INFRA.md](../../../INFRA.md)
 
 ## Scope
 
@@ -71,7 +71,7 @@ The finished harness must satisfy all of the following:
 1. Read [IMPLEMENTATION.md](./IMPLEMENTATION.md)
 2. Read [TESTING.md](./TESTING.md)
 3. Read [CHECKLIST.md](./CHECKLIST.md)
-4. Claim slice `150` in [step-100/PROGRESS.md](../step-100/PROGRESS.md) before writing code
+4. Claim slice `150` in [step-100/PROGRESS.md](../PROGRESS.md) before writing code
 
 ## Definition Of Done
 
@@ -79,7 +79,7 @@ This slice is done only when:
 
 - the implementation matches [IMPLEMENTATION.md](./IMPLEMENTATION.md),
 - the automated commands in [TESTING.md](./TESTING.md) pass,
-- exact commands and results are recorded in [step-100/PROGRESS.md](../step-100/PROGRESS.md), and
+- exact commands and results are recorded in [step-100/PROGRESS.md](../PROGRESS.md), and
 - the shared fixtures are actually used by the smoke tests rather than existing unused.
 
 ## Handoff To Later Steps

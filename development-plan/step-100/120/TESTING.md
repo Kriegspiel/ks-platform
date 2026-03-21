@@ -107,7 +107,7 @@ An acceptable wrapper must:
 
 ## CI Expectations
 
-This slice should be compatible with CI service containers as described in [INFRA.md](../../INFRA.md).
+This slice should be compatible with CI service containers as described in [INFRA.md](../../../INFRA.md).
 
 That means:
 
@@ -126,7 +126,7 @@ The slice is not complete if any of the following happen:
 
 ## Evidence To Record In Progress
 
-When the slice is implemented, record in [step-100/PROGRESS.md](../step-100/PROGRESS.md):
+When the slice is implemented, record in [step-100/PROGRESS.md](../PROGRESS.md):
 
 - the exact unit-test commands,
 - the exact integration command,

@@ -18,7 +18,7 @@ Create the runnable backend + frontend skeleton with MongoDB wiring, Docker setu
 
 ### 110 — Backend: App Factory, Settings, Health Endpoint
 
-Detailed execution packet: [development-plan/step-110](../step-110/README.md)
+Detailed execution packet: [development-plan/step-100/110](./110/README.md)
 
 **Create these files:**
 
@@ -44,13 +44,13 @@ Detailed execution packet: [development-plan/step-110](../step-110/README.md)
 - Automated tests confirm `/health` returns exactly `{"status": "ok"}`
 - Automated tests confirm CORS allows requests from localhost:5173 with credentials enabled
 
-Manual `uvicorn` and `curl` smoke checks are optional for debugging, but this slice is not complete without the automated checks defined in [development-plan/step-110/TESTING.md](../step-110/TESTING.md).
+Manual `uvicorn` and `curl` smoke checks are optional for debugging, but this slice is not complete without the automated checks defined in [development-plan/step-100/110/TESTING.md](./110/TESTING.md).
 
 ---
 
 ### 120 — MongoDB Motor Wiring
 
-Detailed execution packet: [development-plan/step-120](../step-120/README.md)
+Detailed execution packet: [development-plan/step-100/120](./120/README.md)
 
 **Create/modify these files:**
 
@@ -67,13 +67,13 @@ Detailed execution packet: [development-plan/step-120](../step-120/README.md)
 - Automated tests confirm `/health` returns 503 with `{"status": "error", "db": "disconnected"}` when Mongo is unavailable
 - Automated tests confirm the required MongoDB indexes are created
 
-Manual testing against a developer-started MongoDB instance is optional for debugging, but this slice is not complete without the automated checks defined in [development-plan/step-120/TESTING.md](../step-120/TESTING.md).
+Manual testing against a developer-started MongoDB instance is optional for debugging, but this slice is not complete without the automated checks defined in [development-plan/step-100/120/TESTING.md](./120/TESTING.md).
 
 ---
 
 ### 130 — React Frontend Scaffold
 
-Detailed execution packet: [development-plan/step-130](../step-130/README.md)
+Detailed execution packet: [development-plan/step-100/130](./130/README.md)
 
 **Create these files:**
 
@@ -94,13 +94,13 @@ Detailed execution packet: [development-plan/step-130](../step-130/README.md)
 - `cd frontend && npm run build` produces a `dist/` folder
 - Automated tests confirm the placeholder routes render and the Axios client uses the dev proxy strategy
 
-Manual browser checks are optional for debugging, but this slice is not complete without the automated checks defined in [development-plan/step-130/TESTING.md](../step-130/TESTING.md).
+Manual browser checks are optional for debugging, but this slice is not complete without the automated checks defined in [development-plan/step-100/130/TESTING.md](./130/TESTING.md).
 
 ---
 
 ### 140 — Dev Environment Files
 
-Detailed execution packet: [development-plan/step-140](../step-140/README.md)
+Detailed execution packet: [development-plan/step-100/140](./140/README.md)
 
 **Create these files:**
 
@@ -120,13 +120,13 @@ Detailed execution packet: [development-plan/step-140](../step-140/README.md)
 - Automated replica-init script validation passes
 - `docker compose --profile dev up -d --build` starts the dev stack and automated health probing succeeds
 
-Manual stack inspection is optional for debugging, but this slice is not complete without the automated checks defined in [development-plan/step-140/TESTING.md](../step-140/TESTING.md).
+Manual stack inspection is optional for debugging, but this slice is not complete without the automated checks defined in [development-plan/step-100/140/TESTING.md](./140/TESTING.md).
 
 ---
 
 ### 150 — Test Harness and Smoke Tests
 
-Detailed execution packet: [development-plan/step-150](../step-150/README.md)
+Detailed execution packet: [development-plan/step-100/150](./150/README.md)
 
 **Create these files:**
 
@@ -148,7 +148,7 @@ Detailed execution packet: [development-plan/step-150](../step-150/README.md)
 - `cd src && black --check app tests` passes
 - `cd src && ruff check app tests` passes
 
-This slice is not complete without the automated checks defined in [development-plan/step-150/TESTING.md](../step-150/TESTING.md).
+This slice is not complete without the automated checks defined in [development-plan/step-100/150/TESTING.md](./150/TESTING.md).
 
 ---
 

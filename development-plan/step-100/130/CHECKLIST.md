@@ -4,10 +4,10 @@ Use this as the execution checklist when implementing slice `130`.
 
 ## Planning And Context
 
-- [ ] Re-read [development-plan/README.md](../README.md)
-- [ ] Re-read [development-plan/PLAN.md](../PLAN.md)
-- [ ] Re-read [step-100 README](../step-100/README.md)
-- [ ] Claim slice `130` in [step-100/PROGRESS.md](../step-100/PROGRESS.md)
+- [ ] Re-read [development-plan/README.md](../../README.md)
+- [ ] Re-read [development-plan/PLAN.md](../../PLAN.md)
+- [ ] Re-read [step-100 README](../README.md)
+- [ ] Claim slice `130` in [step-100/PROGRESS.md](../PROGRESS.md)
 
 ## Files To Create
 
@@ -49,7 +49,7 @@ Use this as the execution checklist when implementing slice `130`.
 
 ## Before Marking Done
 
-- [ ] Record exact command results in [step-100/PROGRESS.md](../step-100/PROGRESS.md)
+- [ ] Record exact command results in [step-100/PROGRESS.md](../PROGRESS.md)
 - [ ] Confirm route coverage is automated
 - [ ] Confirm the Axios client relies on the Vite proxy, not a hard-coded backend URL
 - [ ] Leave handoff notes for later frontend slices

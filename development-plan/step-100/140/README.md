@@ -1,8 +1,8 @@
 # Step 140 - Dev Environment Files
 
-This folder is the detailed execution packet for slice `140` from [step-100](../step-100/README.md).
+This folder is the detailed execution packet for slice `140` from [step-100](../README.md).
 
-Canonical status for this slice still lives in [step-100/PROGRESS.md](../step-100/PROGRESS.md). This folder expands the slice into implementation-ready planning docs; it does not create a new top-level rollup step.
+Canonical status for this slice still lives in [step-100/PROGRESS.md](../PROGRESS.md). This folder expands the slice into implementation-ready planning docs; it does not create a new top-level rollup step.
 
 ## Goal
 
@@ -20,11 +20,11 @@ Slices `110` through `130` define application code structure, but they do not ma
 
 ## Read First
 
-- [development-plan/README.md](../README.md)
-- [development-plan/PLAN.md](../PLAN.md)
-- [step-100 README](../step-100/README.md)
-- [INFRA.md](../../INFRA.md)
-- [README.md](../../README.md)
+- [development-plan/README.md](../../README.md)
+- [development-plan/PLAN.md](../../PLAN.md)
+- [step-100 README](../README.md)
+- [INFRA.md](../../../INFRA.md)
+- [README.md](../../../README.md)
 
 ## Scope
 
@@ -78,7 +78,7 @@ The finished files must satisfy all of the following:
 1. Read [IMPLEMENTATION.md](./IMPLEMENTATION.md)
 2. Read [TESTING.md](./TESTING.md)
 3. Read [CHECKLIST.md](./CHECKLIST.md)
-4. Claim slice `140` in [step-100/PROGRESS.md](../step-100/PROGRESS.md) before writing code
+4. Claim slice `140` in [step-100/PROGRESS.md](../PROGRESS.md) before writing code
 
 ## Definition Of Done
 
@@ -86,7 +86,7 @@ This slice is done only when:
 
 - the implementation matches [IMPLEMENTATION.md](./IMPLEMENTATION.md),
 - every automated validation step in [TESTING.md](./TESTING.md) passes,
-- exact commands and results are recorded in [step-100/PROGRESS.md](../step-100/PROGRESS.md), and
+- exact commands and results are recorded in [step-100/PROGRESS.md](../PROGRESS.md), and
 - stack bring-up is proven by automated commands rather than a manual “it seems to work” check.
 
 ## Handoff To The Next Slices

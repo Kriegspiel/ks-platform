@@ -1,8 +1,8 @@
 # Step 110 - Backend App Factory, Settings, Health Endpoint
 
-This folder is the detailed execution packet for slice `110` from [step-100](../step-100/README.md).
+This folder is the detailed execution packet for slice `110` from [step-100](../README.md).
 
-Canonical status for this slice still lives in [step-100/PROGRESS.md](../step-100/PROGRESS.md). This folder expands the slice into implementation-ready planning docs; it does not create a new top-level rollup step.
+Canonical status for this slice still lives in [step-100/PROGRESS.md](../PROGRESS.md). This folder expands the slice into implementation-ready planning docs; it does not create a new top-level rollup step.
 
 ## Goal
 
@@ -25,12 +25,12 @@ Everything else in the backend depends on this slice establishing a stable impor
 
 ## Read First
 
-- [development-plan/README.md](../README.md)
-- [development-plan/PLAN.md](../PLAN.md)
-- [step-100 README](../step-100/README.md)
-- [ARCHITECTURE.md](../../ARCHITECTURE.md)
-- [INFRA.md](../../INFRA.md)
-- [AUTH.md](../../AUTH.md)
+- [development-plan/README.md](../../README.md)
+- [development-plan/PLAN.md](../../PLAN.md)
+- [step-100 README](../README.md)
+- [ARCHITECTURE.md](../../../ARCHITECTURE.md)
+- [INFRA.md](../../../INFRA.md)
+- [AUTH.md](../../../AUTH.md)
 
 ## Scope
 
@@ -87,7 +87,7 @@ The finished code must satisfy all of the following:
 1. Read [IMPLEMENTATION.md](./IMPLEMENTATION.md)
 2. Read [TESTING.md](./TESTING.md)
 3. Read [CHECKLIST.md](./CHECKLIST.md)
-4. Claim slice `110` in [step-100/PROGRESS.md](../step-100/PROGRESS.md) before writing code
+4. Claim slice `110` in [step-100/PROGRESS.md](../PROGRESS.md) before writing code
 
 ## Definition Of Done
 
@@ -95,7 +95,7 @@ This slice is done only when:
 
 - the implementation matches [IMPLEMENTATION.md](./IMPLEMENTATION.md),
 - every required automated check in [TESTING.md](./TESTING.md) passes,
-- exact test commands and results are recorded in [step-100/PROGRESS.md](../step-100/PROGRESS.md), and
+- exact test commands and results are recorded in [step-100/PROGRESS.md](../PROGRESS.md), and
 - no manual browser, `curl`, or ad-hoc `uvicorn` smoke test is used as the sole signoff evidence.
 
 Manual smoke checks are optional for local debugging, but they do not satisfy completion on their own.

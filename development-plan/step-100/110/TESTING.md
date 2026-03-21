@@ -113,7 +113,7 @@ cd src && black --check app tests
 If `black`, `ruff`, or coverage configuration is not available yet, the implementing agent must either:
 
 - add the smallest missing project configuration needed for these commands to run, or
-- document the exact blocker in [step-100/PROGRESS.md](../step-100/PROGRESS.md) and stop without marking the slice done.
+- document the exact blocker in [step-100/PROGRESS.md](../PROGRESS.md) and stop without marking the slice done.
 
 ## CI Expectations
 
@@ -138,7 +138,7 @@ The slice is not complete if any of the following happen:
 
 ## Evidence To Record In Progress
 
-When the slice is implemented, record in [step-100/PROGRESS.md](../step-100/PROGRESS.md):
+When the slice is implemented, record in [step-100/PROGRESS.md](../PROGRESS.md):
 
 - the exact commands that were run,
 - whether each command passed or failed,

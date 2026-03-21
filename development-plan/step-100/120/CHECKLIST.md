@@ -4,11 +4,11 @@ Use this as the execution checklist when implementing slice `120`.
 
 ## Planning And Context
 
-- [ ] Re-read [development-plan/README.md](../README.md)
-- [ ] Re-read [development-plan/PLAN.md](../PLAN.md)
-- [ ] Re-read [step-100 README](../step-100/README.md)
-- [ ] Re-read [step-110 README](../step-110/README.md)
-- [ ] Claim slice `120` in [step-100/PROGRESS.md](../step-100/PROGRESS.md)
+- [ ] Re-read [development-plan/README.md](../../README.md)
+- [ ] Re-read [development-plan/PLAN.md](../../PLAN.md)
+- [ ] Re-read [step-100 README](../README.md)
+- [ ] Re-read [step-110 README](../110/README.md)
+- [ ] Claim slice `120` in [step-100/PROGRESS.md](../PROGRESS.md)
 
 ## Files To Create Or Modify
 
@@ -48,7 +48,7 @@ Use this as the execution checklist when implementing slice `120`.
 
 ## Before Marking Done
 
-- [ ] Record exact command results in [step-100/PROGRESS.md](../step-100/PROGRESS.md)
+- [ ] Record exact command results in [step-100/PROGRESS.md](../PROGRESS.md)
 - [ ] Confirm all required indexes are asserted by tests
 - [ ] Confirm `/health` covers both 200 and 503 cases in automation
 - [ ] Leave handoff notes for slices `140` and `150`

@@ -4,12 +4,12 @@ Use this as the execution checklist when implementing slice `150`.
 
 ## Planning And Context
 
-- [ ] Re-read [development-plan/README.md](../README.md)
-- [ ] Re-read [development-plan/PLAN.md](../PLAN.md)
-- [ ] Re-read [step-100 README](../step-100/README.md)
-- [ ] Re-read [step-110 README](../step-110/README.md)
-- [ ] Re-read [step-120 README](../step-120/README.md)
-- [ ] Claim slice `150` in [step-100/PROGRESS.md](../step-100/PROGRESS.md)
+- [ ] Re-read [development-plan/README.md](../../README.md)
+- [ ] Re-read [development-plan/PLAN.md](../../PLAN.md)
+- [ ] Re-read [step-100 README](../README.md)
+- [ ] Re-read [step-110 README](../110/README.md)
+- [ ] Re-read [step-120 README](../120/README.md)
+- [ ] Claim slice `150` in [step-100/PROGRESS.md](../PROGRESS.md)
 
 ## Files To Create Or Update
 
@@ -47,7 +47,7 @@ Use this as the execution checklist when implementing slice `150`.
 
 ## Before Marking Done
 
-- [ ] Record exact command results in [step-100/PROGRESS.md](../step-100/PROGRESS.md)
+- [ ] Record exact command results in [step-100/PROGRESS.md](../PROGRESS.md)
 - [ ] Confirm the suite uses `kriegspiel_test` or equivalent isolated DB
 - [ ] Confirm the async client does not require `uvicorn`
 - [ ] Leave handoff notes for later backend slices

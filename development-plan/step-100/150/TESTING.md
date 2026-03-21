@@ -54,7 +54,7 @@ If integration tests depend on a disposable MongoDB instance, the final `pytest 
 
 ## CI Expectations
 
-This slice should remain compatible with the MongoDB service-container approach documented in [INFRA.md](../../INFRA.md).
+This slice should remain compatible with the MongoDB service-container approach documented in [INFRA.md](../../../INFRA.md).
 
 That means:
 
@@ -73,7 +73,7 @@ The slice is not complete if any of the following happen:
 
 ## Evidence To Record In Progress
 
-When the slice is implemented, record in [step-100/PROGRESS.md](../step-100/PROGRESS.md):
+When the slice is implemented, record in [step-100/PROGRESS.md](../PROGRESS.md):
 
 - the exact pytest command(s),
 - the exact lint/format commands,

@@ -1,8 +1,8 @@
 # Step 130 - React Frontend Scaffold
 
-This folder is the detailed execution packet for slice `130` from [step-100](../step-100/README.md).
+This folder is the detailed execution packet for slice `130` from [step-100](../README.md).
 
-Canonical status for this slice still lives in [step-100/PROGRESS.md](../step-100/PROGRESS.md). This folder expands the slice into implementation-ready planning docs; it does not create a new top-level rollup step.
+Canonical status for this slice still lives in [step-100/PROGRESS.md](../PROGRESS.md). This folder expands the slice into implementation-ready planning docs; it does not create a new top-level rollup step.
 
 ## Goal
 
@@ -20,13 +20,13 @@ The root repo docs still describe a server-rendered frontend, but the active dev
 
 ## Read First
 
-- [development-plan/README.md](../README.md)
-- [development-plan/PLAN.md](../PLAN.md)
-- [step-100 README](../step-100/README.md)
-- [README.md](../../README.md)
-- [FRONTEND.md](../../FRONTEND.md)
+- [development-plan/README.md](../../README.md)
+- [development-plan/PLAN.md](../../PLAN.md)
+- [step-100 README](../README.md)
+- [README.md](../../../README.md)
+- [FRONTEND.md](../../../FRONTEND.md)
 
-For implementation choices that conflict with [FRONTEND.md](../../FRONTEND.md), follow the development plan's React + Vite decision.
+For implementation choices that conflict with [FRONTEND.md](../../../FRONTEND.md), follow the development plan's React + Vite decision.
 
 ## Scope
 
@@ -83,7 +83,7 @@ The finished code must satisfy all of the following:
 1. Read [IMPLEMENTATION.md](./IMPLEMENTATION.md)
 2. Read [TESTING.md](./TESTING.md)
 3. Read [CHECKLIST.md](./CHECKLIST.md)
-4. Claim slice `130` in [step-100/PROGRESS.md](../step-100/PROGRESS.md) before writing code
+4. Claim slice `130` in [step-100/PROGRESS.md](../PROGRESS.md) before writing code
 
 ## Definition Of Done
 
@@ -91,7 +91,7 @@ This slice is done only when:
 
 - the implementation matches [IMPLEMENTATION.md](./IMPLEMENTATION.md),
 - every automated frontend check in [TESTING.md](./TESTING.md) passes,
-- exact commands and results are recorded in [step-100/PROGRESS.md](../step-100/PROGRESS.md), and
+- exact commands and results are recorded in [step-100/PROGRESS.md](../PROGRESS.md), and
 - route coverage is proven with automation rather than browser-only inspection.
 
 ## Handoff To The Next Slices

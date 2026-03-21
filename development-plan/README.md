@@ -69,7 +69,7 @@ This plan is organized in two layers:
   - `step-XYZ/README.md`: the step goal, scope, dependencies, task slices, tests, and exit criteria.
   - `step-XYZ/PROGRESS.md`: live status, test evidence, blockers, and handoff notes for that step.
 - Optional slice detail packets:
-  - A folder such as `step-110/` may exist when a single slice needs a more detailed execution packet split across multiple Markdown files.
+  - A folder such as `step-100/110/` may exist when a single slice needs a more detailed execution packet split across multiple Markdown files.
   - These slice folders do not change the top-level rollup model on their own.
   - Unless a plan document says otherwise, slice status still belongs in the parent step `PROGRESS.md`.
 

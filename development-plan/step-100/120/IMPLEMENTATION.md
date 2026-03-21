@@ -41,7 +41,7 @@ Implementation requirements:
 
 ### Required Index Set
 
-The implementation must create these exact index families from [DATA_MODEL.md](../../DATA_MODEL.md):
+The implementation must create these exact index families from [DATA_MODEL.md](../../../DATA_MODEL.md):
 
 - `users`
   - unique `username`

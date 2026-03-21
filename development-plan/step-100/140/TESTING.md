@@ -61,7 +61,7 @@ The slice is not complete if any of the following happen:
 
 ## Evidence To Record In Progress
 
-When the slice is implemented, record in [step-100/PROGRESS.md](../step-100/PROGRESS.md):
+When the slice is implemented, record in [step-100/PROGRESS.md](../PROGRESS.md):
 
 - the exact Docker and shell commands that were run,
 - whether each command passed or failed,

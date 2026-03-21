@@ -4,11 +4,11 @@ Use this as the execution checklist when implementing slice `140`.
 
 ## Planning And Context
 
-- [ ] Re-read [development-plan/README.md](../README.md)
-- [ ] Re-read [development-plan/PLAN.md](../PLAN.md)
-- [ ] Re-read [step-100 README](../step-100/README.md)
-- [ ] Re-read [INFRA.md](../../INFRA.md)
-- [ ] Claim slice `140` in [step-100/PROGRESS.md](../step-100/PROGRESS.md)
+- [ ] Re-read [development-plan/README.md](../../README.md)
+- [ ] Re-read [development-plan/PLAN.md](../../PLAN.md)
+- [ ] Re-read [step-100 README](../README.md)
+- [ ] Re-read [INFRA.md](../../../INFRA.md)
+- [ ] Claim slice `140` in [step-100/PROGRESS.md](../PROGRESS.md)
 
 ## Files To Create
 
@@ -56,7 +56,7 @@ Use this as the execution checklist when implementing slice `140`.
 
 ## Before Marking Done
 
-- [ ] Record exact command results in [step-100/PROGRESS.md](../step-100/PROGRESS.md)
+- [ ] Record exact command results in [step-100/PROGRESS.md](../PROGRESS.md)
 - [ ] Confirm the stack comes up from a clean repo state
 - [ ] Confirm no validation step depended on manual intervention
 - [ ] Leave handoff notes for slice `150` and later infra work
