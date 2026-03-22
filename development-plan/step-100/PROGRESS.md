@@ -7,7 +7,7 @@ Last Updated: 2026-03-22
 
 - [x] `110` Backend: App factory, settings, health endpoint
 - [x] `120` MongoDB Motor wiring
-- [ ] `130` React frontend scaffold
+- [x] `130` React frontend scaffold
 - [ ] `140` Dev environment files
 - [ ] `150` Test harness and smoke tests
 
@@ -76,10 +76,36 @@ Commands run from `ks-v2/backend`:
    - Result: **pass**
    - Disposable MongoDB mechanism: ephemeral `mongo:7` Docker container spun up and torn down by script.
 
+
+### Slice 130 (implemented in ks-v2, PR open)
+
+Implementation branch: feat/step-130-react-scaffold  
+PR: <https://github.com/Kriegspiel/ks-v2/pull/3>
+
+Scope delivered:
+- Vite React scaffold route shell with deterministic placeholders for /, /auth/login, /auth/register, /lobby, /game/:gameId
+- Shared Axios client configured for proxy-friendly relative baseURL and withCredentials enabled
+- Vite dev proxy wiring for /api and /auth to http://localhost:8000
+- Frontend smoke-test harness with Vitest + Testing Library
+
+Commands run from ks-v2/frontend:
+
+1. npm install
+   - Result: pass (engine warnings only; host Node v18 while vite/react-router metadata prefers >=20)
+
+2. npm run test -- --run
+   - Result: 8 passed
+
+3. npm run lint
+   - Result: success
+
+4. npm run build
+   - Result: success
+
 ## Blockers
 
 - No blockers for slices `110` and `120`.
-- Remaining slices (`130`–`150`) pending implementation.
+- Slice `130` complete; remaining slices `140` and `150` pending implementation.
 
 ## Notes
 
@@ -89,4 +115,4 @@ Commands run from `ks-v2/backend`:
 
 ## Handoff
 
-- Start slice `130` (frontend scaffold) next.
+- Start slice `140` (dev environment files) next.
