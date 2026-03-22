@@ -31,3 +31,4 @@ Overall Status: NOT STARTED
 - Step `200` now has dedicated slice packets for `210`, `220`, `230`, `240`, and `250` under `development-plan/step-200/`.
 - Step `300` now has dedicated slice packets for `310`, `320`, `330`, `340`, and `350` under `development-plan/step-300/`.
 - Step `400` now has dedicated slice packets for `410`, `420`, `430`, `440`, `450`, and `460` under `development-plan/step-400/`.
+- Step `500` now has dedicated slice packets for `510`, `520`, `530`, `540`, and `550` under `development-plan/step-500/`.
