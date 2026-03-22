@@ -116,3 +116,23 @@ Commands run from ks-v2/frontend:
 ## Handoff
 
 - Start slice `140` (dev environment files) next.
+
+### Slice 140 (implemented in ks-v2, merged)
+
+Implementation branch: feat/step-140-dev-environment-files
+PR: https://github.com/Kriegspiel/ks-v2/pull/4 (merged)
+Merge commit: 25ba37b17a4d0abdf06edaa29a29f94f4633626f
+
+Test evidence (ks-v2 root):
+- docker compose config -> pass
+- docker build -f backend/src/app/Dockerfile backend/src -> pass
+- bash -n backend/src/mongo/init-replica.sh -> pass
+- nginx config test (nginx:1.27-alpine, nginx -t) -> pass
+- DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker compose --profile dev up -d --build -> pass
+- curl --fail --silent http://localhost:18000/health -> pass ({"status":"ok","db":"connected"})
+- docker compose exec -T mongo mongosh --quiet --eval rs.status().ok -> pass (1)
+- DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker compose --profile dev down -v -> pass
+
+Notes:
+- Host ports 8000 and 8080 were already allocated on rpi-server-02; validation used 18000 (app) and 18080 (nginx).
+- BuildKit API mismatch on this host required legacy compose build mode for validation.
