@@ -39,10 +39,10 @@ Commands run from `ks-v2/backend`:
 5. `cd src && black --check app tests`
    - Result: success
 
-### Slice 120 (implemented in `ks-v2`, PR open)
+### Slice 120 (implemented in `ks-v2`, merged)
 
 Implementation branch: `feat/step-120-mongo-motor`  
-PR: <https://github.com/Kriegspiel/ks-v2/pull/2>
+PR: <https://github.com/Kriegspiel/ks-v2/pull/2> (merged)
 
 Scope delivered:
 - Added Motor DB lifecycle module (`init_db`, `get_db`, `close_db`)
@@ -89,5 +89,4 @@ Commands run from `ks-v2/backend`:
 
 ## Handoff
 
-- Merge ks-v2 PR #2 for slice `120`.
 - Start slice `130` (frontend scaffold) next.
