@@ -28,13 +28,13 @@ These override the original spec docs where they conflict:
 | `step-100` | Foundation and Scaffold | 5 | Backend app factory, MongoDB, React scaffold, Docker, tests | — |
 | `step-200` | Auth and Sessions | 5 | Users, passwords, login/register API + React pages | `step-100` |
 | `step-300` | Lobby and Game Lifecycle | 5 | Create/join/list games, join codes, lobby UI | `step-200` |
-| `step-400` | Gameplay Core | 5 | Engine integration, moves, ask-any, resign, polling, clock | `step-300` |
+| `step-400` | Gameplay Core | 6 | Engine integration, moves/ask-any/resign, hidden-info polling, clock/timeouts, transcript/archive, gameplay integration tests | `step-300` |
 | `step-500` | Game UI | 5 | Board component, game page, phantoms, promotion, polish | `step-400` |
 | `step-600` | Review and Player Features | 5 | Profile, history, leaderboard, settings, game review | `step-500` |
 | `step-700` | Infra and Operations | 5 | Docker finalize, NGINX, CI, backup, logging | `step-600` |
 | `step-800` | Hardening and Launch Readiness | 5 | Regression, security, error paths, docs, launch | `step-700` |
 
-**Total: 40 slices**
+**Total: 41 slices**
 
 ## Slice Sizing
 
@@ -71,3 +71,9 @@ Each slice is designed to be completable in a single ~$20 agent session (~15-20 
 - [step-300/330](./step-300/330/README.md) expands slice `330` from `step-300` into a dedicated implementation and automated-testing packet.
 - [step-300/340](./step-300/340/README.md) expands slice `340` from `step-300` into a dedicated implementation and automated-testing packet.
 - [step-300/350](./step-300/350/README.md) expands slice `350` from `step-300` into a dedicated implementation and automated-testing packet.
+- [step-400/410](./step-400/410/README.md) expands slice `410` from `step-400` into a dedicated implementation and automated-testing packet.
+- [step-400/420](./step-400/420/README.md) expands slice `420` from `step-400` into a dedicated implementation and automated-testing packet.
+- [step-400/430](./step-400/430/README.md) expands slice `430` from `step-400` into a dedicated implementation and automated-testing packet.
+- [step-400/440](./step-400/440/README.md) expands slice `440` from `step-400` into a dedicated implementation and automated-testing packet.
+- [step-400/450](./step-400/450/README.md) expands slice `450` from `step-400` into a dedicated implementation and automated-testing packet.
+- [step-400/460](./step-400/460/README.md) expands slice `460` from `step-400` into a dedicated implementation and automated-testing packet.
