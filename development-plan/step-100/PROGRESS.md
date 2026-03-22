@@ -105,7 +105,7 @@ Commands run from ks-v2/frontend:
 ## Blockers
 
 - No blockers for slices 110, 120, 130, and 140.
-- Slice `130` complete; remaining slices `140` and `150` pending implementation.
+- Slice 150 remains pending implementation.
 
 ## Notes
 
