@@ -9,7 +9,7 @@ Last Updated: 2026-03-22
 - [x] `120` MongoDB Motor wiring
 - [x] `130` React frontend scaffold
 - [x] `140` Dev environment files
-- [ ] `150` Test harness and smoke tests
+- [x] `150` Test harness and smoke tests
 
 ## Test Evidence
 
@@ -102,10 +102,45 @@ Commands run from ks-v2/frontend:
 4. npm run build
    - Result: success
 
+
+### Slice 150 (implemented in ks-v2, merged)
+
+Implementation branch: `feat/step-150-test-harness`  
+PR: <https://github.com/Kriegspiel/ks-v2/pull/7> (merged)
+Merge commit: `d598e8b1b5a030071b9561b85f82e55c4a0c93b4`
+
+Scope delivered:
+- Added shared backend harness files `backend/src/tests/__init__.py` and `backend/src/tests/conftest.py`.
+- Added reusable fixtures for test settings, app factory lifespan, async HTTP client, and autouse test-DB cleanup guard-railed to `*_test` databases only.
+- Refactored health smoke tests to use shared fixtures and async client (no uvicorn dependency).
+- Updated `backend/pyproject.toml` to centralize pytest async mode plus black/ruff/coverage configuration for backend app/tests paths.
+
+Commands run from `ks-v2/backend` (with disposable MongoDB `mongo:7` on `localhost:27018`, `RUN_MONGO_INTEGRATION=1`, `MONGO_URI=mongodb://localhost:27018/kriegspiel_test`):
+
+1. `cd src && ../.venv/bin/pytest tests -v`
+   - Result: **19 passed**
+
+2. `cd src && ../.venv/bin/pytest tests --cov=app --cov-report=xml -v`
+   - Result: **19 passed**
+   - Coverage artifact: `backend/src/coverage.xml` generated successfully
+
+3. `cd src && ../.venv/bin/python -m compileall app tests`
+   - Result: success
+
+4. `cd src && ../.venv/bin/ruff check app tests`
+   - Result: success
+
+5. `cd src && ../.venv/bin/black --check app tests`
+   - Result: success
+
+Notes:
+- Shared harness defaults to isolated database `kriegspiel_test`.
+- Health smoke tests now execute through shared fixtures and async HTTP transport bound directly to ASGI app.
+
 ## Blockers
 
 - No blockers for slices 110, 120, 130, and 140.
-- Slice 150 remains pending implementation.
+- No blockers for slice 150 implementation; merged in ks-v2 PR #7.
 
 ## Notes
 
@@ -115,7 +150,7 @@ Commands run from ks-v2/frontend:
 
 ## Handoff
 
-- Start slice 150 (test harness and smoke tests) next.
+- Slice 150 complete; next backend slices should extend shared fixtures in src/tests/conftest.py.
 
 ### Slice 140 (implemented in ks-v2, merged)
 
