@@ -8,7 +8,7 @@ Last Updated: 2026-03-22
 - [x] `110` Backend: App factory, settings, health endpoint
 - [x] `120` MongoDB Motor wiring
 - [x] `130` React frontend scaffold
-- [ ] `140` Dev environment files
+- [x] `140` Dev environment files
 - [ ] `150` Test harness and smoke tests
 
 ## Test Evidence
@@ -104,7 +104,7 @@ Commands run from ks-v2/frontend:
 
 ## Blockers
 
-- No blockers for slices `110` and `120`.
+- No blockers for slices 110, 120, 130, and 140.
 - Slice `130` complete; remaining slices `140` and `150` pending implementation.
 
 ## Notes
@@ -115,7 +115,7 @@ Commands run from ks-v2/frontend:
 
 ## Handoff
 
-- Start slice `140` (dev environment files) next.
+- Start slice 150 (test harness and smoke tests) next.
 
 ### Slice 140 (implemented in ks-v2, merged)
 
