@@ -25,6 +25,61 @@ The spec describes session middleware + CSRF middleware. We use a simpler approa
 - **No session middleware** — use a FastAPI dependency (`get_current_user`) instead
 - **No sliding session expiry** — sessions last 30 days, period
 
+## Product Decision Note — Registration Inputs and Passwordless Migration
+
+### Current required registration fields (Step 200 baseline)
+
+- `username` (required)
+- `email` (required)
+- `password` (required)
+
+`POST /auth/register` should reject requests missing any of the three fields with `422` validation errors.
+
+### Email verification posture (now)
+
+- Collect and store email at registration time, but do **not** block account creation/login on verified email yet.
+- Keep the user schema ready for verification state (`email_verified: bool`, `email_verified_at: datetime | null`) so enforcement can be switched on later without a migration scramble.
+- Do not gate gameplay/lobby access on email verification in Step 200.
+
+### Why password-first now
+
+- Lowest implementation risk for first playable release: known backend/session patterns, fewer moving parts than magic-link/OTP delivery.
+- Faster local/dev/CI testing (no dependency on email/SMS providers).
+- Clear incident recovery path: password reset can be added incrementally without redesigning session infrastructure.
+- Supports immediate anti-abuse controls (rate limits, lockouts, audit logging) on familiar surfaces.
+
+### Planned passwordless migration path
+
+- **Phase 0 (Step 200):** Password-based login is primary and required.
+- **Phase 1:** Add passwordless as opt-in (magic link or email OTP), keep password login fully supported.
+- **Phase 2:** Default UI to passwordless for new users, keep "Use password instead" fallback.
+- **Phase 3:** Optional password retirement for accounts that explicitly enroll in passwordless and have recovery factors configured.
+- **Phase 4:** Evaluate password deprecation only after reliability/SRE metrics and support load are acceptable.
+
+Backward compatibility and rollback requirements:
+
+- Existing password users must continue to authenticate through every phase.
+- Feature-flag passwordless paths so rollout can be disabled quickly without user data rollback.
+- Keep password hash + verifier code path intact until explicit deprecation decision and migration sign-off.
+- Rollback path: disable passwordless entry points, preserve sessions, and continue password auth without schema rollback.
+
+### Security and UX implications
+
+- Requiring email now improves account recovery and abuse investigation readiness, but increases PII handling obligations.
+- Non-blocking verification reduces early signup friction, but unverified-email risk remains; log and monitor unverified account behavior.
+- Password-first means credential stuffing/bruteforce exposure remains; enforce login/register rate limiting and structured auth event logs.
+- Future passwordless should reduce password reuse risk, but rollout must avoid lockout regressions (deliverability issues, expired links, device switches).
+
+### Engineering checklist and test requirements
+
+- Backend validation: enforce required `username`, `email`, `password` on register.
+- Persist verification-ready fields (`email_verified`, `email_verified_at`) with sensible defaults.
+- Keep auth API contract/docs synchronized with required email behavior.
+- Add API tests for missing email on register (`422`) and successful register with required trio (`201`).
+- Add tests confirming login remains password-based during Step 200 (no accidental passwordless-only path).
+- Add observability hooks for register/login outcomes (success/failure reason buckets) to inform Phase 1 go/no-go.
+
+
 ## Task Slices
 
 ### 210 — User Model, Password Hashing, UserService
@@ -35,14 +90,14 @@ The spec describes session middleware + CSRF middleware. We use a simpler approa
   - `UserDocument` (username, username_display, email, password_hash, profile, stats, settings, role, status, timestamps)
   - `UserStats`, `UserSettings`, `UserProfile` embedded models
 - `src/app/models/auth.py` — API request/response models from API_SPEC.md:
-  - `RegisterRequest` (username: 3-20 chars `[a-zA-Z0-9_]+`, password: 8-72 chars, email: optional)
+  - `RegisterRequest` (username: 3-20 chars `[a-zA-Z0-9_]+`, password: 8-72 chars, email: required)
   - `RegisterResponse` (user_id, username, message)
   - `LoginRequest` (username, password)
   - `LoginResponse` (user_id, username)
 - `src/app/services/user_service.py` — `UserService` class:
   - `hash_password(plain) -> str` — bcrypt with default cost
   - `verify_password(plain, hashed) -> bool` — bcrypt check
-  - `create_user(db, username, password, email=None) -> dict` — lowercase username, store display case, hash password, insert into `users`, return user doc. Raise 409 on duplicate.
+  - `create_user(db, username, password, email) -> dict` — lowercase username, store display case, hash password, insert into `users`, return user doc. Raise 409 on duplicate.
   - `authenticate(db, username, password) -> dict | None` — lookup by lowercase username, verify password, return user or None
   - `get_by_id(db, user_id) -> dict | None`
 
@@ -91,7 +146,7 @@ The spec describes session middleware + CSRF middleware. We use a simpler approa
   - `AuthProvider` wraps app, provides `{user, loading, login, register, logout}`
   - On mount: call `GET /auth/me` to check if already logged in
   - `login(username, password)` — call `POST /auth/login`, update state
-  - `register(username, password, email)` — call `POST /auth/register`, update state
+  - `register(username, email, password)` — call `POST /auth/register`, update state
   - `logout()` — call `POST /auth/logout`, clear state
 - `frontend/src/pages/Login.jsx` — login form:
   - Username + password inputs
@@ -100,7 +155,7 @@ The spec describes session middleware + CSRF middleware. We use a simpler approa
   - Link to register page
   - Redirect to `/lobby` on success
 - `frontend/src/pages/Register.jsx` — registration form:
-  - Username + password + optional email inputs
+  - Username + email + password inputs (all required)
   - Client-side validation (username 3-20 chars, password 8+ chars)
   - Submit calls `register()` from AuthContext
   - Error display for duplicates/validation
