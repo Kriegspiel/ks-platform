@@ -28,3 +28,5 @@ Overall Status: NOT STARTED
 - Detailed evidence belongs in the corresponding step `PROGRESS.md`.
 - Slice-level planning folders may exist for deeper execution detail. Rollup status still stays on the parent step unless the plan says otherwise.
 - Step `100` now has dedicated slice packets for `110`, `120`, `130`, `140`, and `150` under `development-plan/step-100/`.
+- Step `200` now has dedicated slice packets for `210`, `220`, `230`, `240`, and `250` under `development-plan/step-200/`.
+- Step `300` now has dedicated slice packets for `310`, `320`, `330`, `340`, and `350` under `development-plan/step-300/`.

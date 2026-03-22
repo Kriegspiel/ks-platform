@@ -66,3 +66,8 @@ Each slice is designed to be completable in a single ~$20 agent session (~15-20 
 - [step-200/230](./step-200/230/README.md) expands slice `230` from `step-200` into a dedicated implementation and automated-testing packet.
 - [step-200/240](./step-200/240/README.md) expands slice `240` from `step-200` into a dedicated implementation and automated-testing packet.
 - [step-200/250](./step-200/250/README.md) expands slice `250` from `step-200` into a dedicated implementation and automated-testing packet.
+- [step-300/310](./step-300/310/README.md) expands slice `310` from `step-300` into a dedicated implementation and automated-testing packet.
+- [step-300/320](./step-300/320/README.md) expands slice `320` from `step-300` into a dedicated implementation and automated-testing packet.
+- [step-300/330](./step-300/330/README.md) expands slice `330` from `step-300` into a dedicated implementation and automated-testing packet.
+- [step-300/340](./step-300/340/README.md) expands slice `340` from `step-300` into a dedicated implementation and automated-testing packet.
+- [step-300/350](./step-300/350/README.md) expands slice `350` from `step-300` into a dedicated implementation and automated-testing packet.
