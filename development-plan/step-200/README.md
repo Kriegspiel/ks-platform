@@ -2,240 +2,58 @@
 
 ## Goal
 
-Implement user registration, login, logout, and session handling. Build React auth pages.
+Deliver production-shaped username/email/password authentication and Mongo-backed sessions across backend and frontend, with deterministic automated tests for each slice.
 
 ## Read First
 
-- [AUTH.md](../../AUTH.md) — password hashing, session model (ignore CSRF/middleware sections — we use a simpler approach)
-- [DATA_MODEL.md](../../DATA_MODEL.md) — users and sessions collections
-- [API_SPEC.md](../../API_SPEC.md) — auth endpoint contracts
-- [development-plan/PLAN.md](../PLAN.md) — architecture decisions
+- [AUTH.md](../../AUTH.md)
+- [DATA_MODEL.md](../../DATA_MODEL.md)
+- [API_SPEC.md](../../API_SPEC.md)
+- [development-plan/README.md](../README.md)
+- [development-plan/PLAN.md](../PLAN.md)
 
 ## Depends On
 
-- `step-100`
+- `step-100` (DONE)
 
-## Auth Approach (Simplified vs. Spec)
+## Product/Auth Decision (Locked)
 
-The spec describes session middleware + CSRF middleware. We use a simpler approach:
+Step 200 must implement the approved decision exactly:
 
-- **Server-side sessions** in MongoDB (same as spec)
-- **HttpOnly cookie** with `SameSite=Lax` (same as spec)
-- **No CSRF middleware** — SameSite=Lax + API-only (no form submissions from server-rendered pages) is sufficient
-- **No session middleware** — use a FastAPI dependency (`get_current_user`) instead
-- **No sliding session expiry** — sessions last 30 days, period
+- **Required now:** `username` + `email` + `password` for registration
+- **Auth mode now:** password-based login + server-side session cookie
+- **Migration later:** passwordless introduced in later phases as additive, then optional default, with password fallback preserved until explicit deprecation sign-off
 
-## Product Decision Note — Registration Inputs and Passwordless Migration
+This decision is mandatory scope and must stay reflected in API contracts, validation, UI copy, and tests.
 
-### Current required registration fields (Step 200 baseline)
+## Slice Packets
 
-- `username` (required)
-- `email` (required)
-- `password` (required)
+Each slice has a detailed implementation packet:
 
-`POST /auth/register` should reject requests missing any of the three fields with `422` validation errors.
+- [210 - Domain models + UserService](./210/README.md)
+- [220 - Session service + auth API](./220/README.md)
+- [230 - Frontend auth state + pages](./230/README.md)
+- [240 - Auth UX polish + navigation integration](./240/README.md)
+- [250 - End-to-end auth verification and hardening checks](./250/README.md)
 
-### Email verification posture (now)
+Every slice folder contains:
 
-- Collect and store email at registration time, but do **not** block account creation/login on verified email yet.
-- Keep the user schema ready for verification state (`email_verified: bool`, `email_verified_at: datetime | null`) so enforcement can be switched on later without a migration scramble.
-- Do not gate gameplay/lobby access on email verification in Step 200.
-
-### Why password-first now
-
-- Lowest implementation risk for first playable release: known backend/session patterns, fewer moving parts than magic-link/OTP delivery.
-- Faster local/dev/CI testing (no dependency on email/SMS providers).
-- Clear incident recovery path: password reset can be added incrementally without redesigning session infrastructure.
-- Supports immediate anti-abuse controls (rate limits, lockouts, audit logging) on familiar surfaces.
-
-### Planned passwordless migration path
-
-- **Phase 0 (Step 200):** Password-based login is primary and required.
-- **Phase 1:** Add passwordless as opt-in (magic link or email OTP), keep password login fully supported.
-- **Phase 2:** Default UI to passwordless for new users, keep "Use password instead" fallback.
-- **Phase 3:** Optional password retirement for accounts that explicitly enroll in passwordless and have recovery factors configured.
-- **Phase 4:** Evaluate password deprecation only after reliability/SRE metrics and support load are acceptable.
-
-Backward compatibility and rollback requirements:
-
-- Existing password users must continue to authenticate through every phase.
-- Feature-flag passwordless paths so rollout can be disabled quickly without user data rollback.
-- Keep password hash + verifier code path intact until explicit deprecation decision and migration sign-off.
-- Rollback path: disable passwordless entry points, preserve sessions, and continue password auth without schema rollback.
-
-### Security and UX implications
-
-- Requiring email now improves account recovery and abuse investigation readiness, but increases PII handling obligations.
-- Non-blocking verification reduces early signup friction, but unverified-email risk remains; log and monitor unverified account behavior.
-- Password-first means credential stuffing/bruteforce exposure remains; enforce login/register rate limiting and structured auth event logs.
-- Future passwordless should reduce password reuse risk, but rollout must avoid lockout regressions (deliverability issues, expired links, device switches).
-
-### Engineering checklist and test requirements
-
-- Backend validation: enforce required `username`, `email`, `password` on register.
-- Persist verification-ready fields (`email_verified`, `email_verified_at`) with sensible defaults.
-- Keep auth API contract/docs synchronized with required email behavior.
-- Add API tests for missing email on register (`422`) and successful register with required trio (`201`).
-- Add tests confirming login remains password-based during Step 200 (no accidental passwordless-only path).
-- Add observability hooks for register/login outcomes (success/failure reason buckets) to inform Phase 1 go/no-go.
-
-
-## Task Slices
-
-### 210 — User Model, Password Hashing, UserService
-
-**Create these files:**
-
-- `src/app/models/user.py` — Pydantic models from DATA_MODEL.md:
-  - `UserDocument` (username, username_display, email, password_hash, profile, stats, settings, role, status, timestamps)
-  - `UserStats`, `UserSettings`, `UserProfile` embedded models
-- `src/app/models/auth.py` — API request/response models from API_SPEC.md:
-  - `RegisterRequest` (username: 3-20 chars `[a-zA-Z0-9_]+`, password: 8-72 chars, email: required)
-  - `RegisterResponse` (user_id, username, message)
-  - `LoginRequest` (username, password)
-  - `LoginResponse` (user_id, username)
-- `src/app/services/user_service.py` — `UserService` class:
-  - `hash_password(plain) -> str` — bcrypt with default cost
-  - `verify_password(plain, hashed) -> bool` — bcrypt check
-  - `create_user(db, username, password, email) -> dict` — lowercase username, store display case, hash password, insert into `users`, return user doc. Raise 409 on duplicate.
-  - `authenticate(db, username, password) -> dict | None` — lookup by lowercase username, verify password, return user or None
-  - `get_by_id(db, user_id) -> dict | None`
-
-**Acceptance criteria:**
-- `RegisterRequest` rejects usernames with spaces, passwords under 8 chars
-- `hash_password` / `verify_password` round-trip works
-- `create_user` inserts a user matching DATA_MODEL.md schema
-- `create_user` raises on duplicate username
-- `authenticate` returns None on wrong password
-
----
-
-### 220 — Session Service and Auth API Endpoints
-
-**Create these files:**
-
-- `src/app/services/session_service.py` — `SessionService`:
-  - `create_session(db, user_id, username, ip, user_agent) -> str` — generate 32-byte random hex ID, insert session doc (user_id, username, ip, user_agent, created_at, expires_at=now+30days), return session_id
-  - `get_session(db, session_id) -> dict | None` — lookup session, return None if missing/expired
-  - `delete_session(db, session_id)` — remove session doc
-- `src/app/dependencies.py`:
-  - `get_current_user(request) -> dict` — read `session_id` cookie, lookup session via SessionService, return `{user_id, username}` or raise 401. This is a FastAPI `Depends()` function, not middleware.
-- `src/app/routers/auth.py` — FastAPI router, prefix `/auth`:
-  - `POST /auth/register` — validate `RegisterRequest`, create user, create session, set `session_id` cookie (HttpOnly, SameSite=Lax, Max-Age=30 days, Secure=True only in production), return 201 `RegisterResponse`
-  - `POST /auth/login` — validate `LoginRequest`, authenticate, create session, set cookie, return 200 `LoginResponse`. Return 401 on bad credentials.
-  - `POST /auth/logout` — delete session, clear cookie, return `{"message": "Logged out"}`
-  - `GET /auth/me` — uses `get_current_user` dependency, returns user info (user_id, username, email, stats, settings). Returns 401 if not authenticated.
-- Wire auth router into `src/app/main.py`
-
-**Acceptance criteria:**
-- `POST /auth/register` returns 201 + sets `session_id` cookie
-- `POST /auth/register` with duplicate username returns 409
-- `POST /auth/login` with correct password returns 200 + sets cookie
-- `POST /auth/login` with wrong password returns 401
-- `POST /auth/logout` clears session and cookie
-- `GET /auth/me` with valid cookie returns user data
-- `GET /auth/me` without cookie returns 401
-
----
-
-### 230 — React Auth Pages
-
-**Create these files:**
-
-- `frontend/src/context/AuthContext.jsx` — React context for auth state:
-  - `AuthProvider` wraps app, provides `{user, loading, login, register, logout}`
-  - On mount: call `GET /auth/me` to check if already logged in
-  - `login(username, password)` — call `POST /auth/login`, update state
-  - `register(username, email, password)` — call `POST /auth/register`, update state
-  - `logout()` — call `POST /auth/logout`, clear state
-- `frontend/src/pages/Login.jsx` — login form:
-  - Username + password inputs
-  - Submit calls `login()` from AuthContext
-  - Error display for invalid credentials
-  - Link to register page
-  - Redirect to `/lobby` on success
-- `frontend/src/pages/Register.jsx` — registration form:
-  - Username + email + password inputs (all required)
-  - Client-side validation (username 3-20 chars, password 8+ chars)
-  - Submit calls `register()` from AuthContext
-  - Error display for duplicates/validation
-  - Link to login page
-  - Redirect to `/lobby` on success
-- `frontend/src/services/api.js` — add auth API functions:
-  - `authApi.register(username, password, email)`
-  - `authApi.login(username, password)`
-  - `authApi.logout()`
-  - `authApi.me()`
-- `frontend/src/App.jsx` — wrap with `AuthProvider`, add Login/Register routes, add nav bar showing user state (logged in → username + logout, logged out → login/register links)
-
-**Acceptance criteria:**
-- Login page renders with form
-- Registration page renders with form
-- Successful login redirects to /lobby
-- Failed login shows error message
-- Nav bar reflects auth state
-- Page refresh preserves login state (cookie persists)
-
----
-
-### 240 — React Auth Styles
-
-**Create/modify these files:**
-
-- `frontend/src/pages/Login.css` — login form styling (centered card, input fields, button, error area)
-- `frontend/src/pages/Register.css` — registration form styling (same pattern)
-- `frontend/src/components/Nav.jsx` — navigation bar component:
-  - Logo (♞ Kriegspiel) linking to /
-  - Auth area: login/register links when logged out, username + logout button when logged in
-  - Active game indicator (placeholder for step 300)
-- `frontend/src/components/Nav.css` — nav styling
-- `frontend/src/App.jsx` — use Nav component in layout
-
-**Acceptance criteria:**
-- Auth pages are styled and usable
-- Nav bar shows on all pages
-- Nav reflects auth state correctly
-- Forms have basic visual feedback (loading state, errors)
-
----
-
-### 250 — Auth Integration Tests
-
-**Create this file:**
-
-- `src/tests/test_auth.py` — integration tests:
-  - Register with valid data → 201 + cookie set
-  - Register with duplicate username → 409
-  - Register with invalid username (too short, bad chars) → 422
-  - Register with short password → 422
-  - Login with valid credentials → 200 + cookie
-  - Login with wrong password → 401
-  - Login with nonexistent user → 401
-  - Logout → session deleted, cookie cleared
-  - `GET /auth/me` with valid session → 200 + user data
-  - `GET /auth/me` without session → 401
-  - `GET /auth/me` with expired/invalid session → 401
-- `src/tests/test_password.py` — unit tests:
-  - `hash_password` produces bcrypt hash
-  - `verify_password` matches correct password
-  - `verify_password` rejects wrong password
-
-**Acceptance criteria:**
-- `cd src && pytest tests/test_auth.py tests/test_password.py -v` — all pass
-- At least 12 test cases
-- Tests use test database and clean up
-
----
+- `README.md` (scope contract)
+- `IMPLEMENTATION.md` (execution-level build plan)
+- `TESTING.md` (exact commands + expected outcomes)
+- `CHECKLIST.md` (operator checklist)
 
 ## Exit Criteria
 
-- Users can register, log in, log out, and check session
-- React auth pages work end-to-end
-- Session cookies are set correctly (HttpOnly, SameSite=Lax)
+- Backend supports register/login/logout/me with session cookies and no middleware-based auth hydration.
+- Registration enforces **username+email+password required**.
+- Frontend auth flow is usable and stateful across refresh.
+- Automated tests cover success/failure auth paths and session lifecycle.
+- Step-200 progress docs include exact executed commands and outcomes for each completed slice.
 
 ## Out of Scope
 
-- CSRF middleware (not needed with SameSite + API-only)
-- OAuth
-- Game logic
-- API token auth (JWT)
+- Passwordless login implementation (planning hooks only)
+- OAuth/social auth
+- Email verification enforcement gate
+- Lobby/game feature work (Step 300+)
