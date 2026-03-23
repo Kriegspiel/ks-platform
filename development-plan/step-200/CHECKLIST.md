@@ -12,7 +12,7 @@
 
 - [ ] Slice 210
 - [ ] Slice 220
-- [ ] Slice 230
+- [x] Slice 230
 - [ ] Slice 240
 - [ ] Slice 250
 

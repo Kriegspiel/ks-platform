@@ -7,7 +7,7 @@ Last Updated: 2026-03-23
 
 - [x] `210` User model, auth DTOs, password hashing, UserService
 - [x] `220` Session service, auth dependency, backend auth routes
-- [ ] `230` React auth context + login/register pages
+- [x] `230` React auth context + login/register pages
 - [ ] `240` Navigation/auth UX integration and styling pass
 - [ ] `250` Backend auth integration + regression tests
 
@@ -92,11 +92,48 @@ Slice 220 acceptance delivered:
 - Enforced required `username` + `email` + `password` registration contract from Slice 210
 - Added tests for route behavior, dependency behavior, and session service expiry handling (including naive Mongo datetime normalization)
 
+
+### Slice 230 (ks-v2 PR #16, merged)
+
+- Branch: step-200-slice-230-auth-ui
+- PR: https://github.com/Kriegspiel/ks-v2/pull/16
+- Merge commit: 50d4e5f902a6e018adc9a474a44028903afd68cd
+
+Commands executed against ks-v2 frontend:
+
+- cd frontend && npm install
+  - result: PASS
+- cd frontend && npm run test -- --run
+  - result: PASS (14 passed, 0 skipped)
+- cd frontend && npm run lint
+  - result: PASS
+- cd frontend && npm run build
+  - result: PASS
+
+Deployment update on rpi-server-02:
+
+- cd /home/fil/dev/kriegspiel/ks-v2 && git checkout main && git pull --ff-only origin main
+- cd frontend && npm install && npm run build
+- sudo systemctl restart ks-v2-backend ks-v2-frontend
+- systemctl status ks-v2-backend ks-v2-frontend --no-pager
+
+Post-deploy verification:
+- curl http://127.0.0.1:8000/health => {"status":"ok","db":"connected"}
+- curl http://127.0.0.1:4173 => frontend HTML served
+
+Slice 230 acceptance delivered:
+- React AuthProvider bootstraps session via /auth/me
+- Register page requires username + email + password and surfaces API errors
+- Login page submits to /auth/login, shows actionable auth errors, and redirects to /lobby on success
+- Protected routes (/lobby, /game/:gameId) redirect unauthenticated users to login
+- Auth routes (/auth/login, /auth/register) redirect authenticated users to lobby
+- Logout calls /auth/logout, clears UI auth state, and returns to login page
+
 ## Blockers
 
-- None for slice 210 or 220.
+- None for slice 210, 220, or 230.
 
 ## Notes
 
-- Next slices: `230` then `240`, followed by `250` backend auth regression hardening.
+- Next slices: `240`, followed by `250` backend auth regression hardening.
 - Keep backend/frontend sequencing aligned with packet dependencies.
