@@ -14,7 +14,7 @@
 - [ ] Slice 220
 - [x] Slice 230
 - [x] Slice 240
-- [ ] Slice 250
+- [x] Slice 250
 
 ## Slice Completion Gate (repeat per slice)
 
@@ -26,7 +26,7 @@
 
 ## Step Completion Gate
 
-- [ ] All slice checkboxes marked done
-- [ ] Step status set to `DONE` in `step-200/PROGRESS.md`
-- [ ] Top-level `development-plan/PROGRESS.md` updated
-- [ ] Handoff notes updated for Step 300 kickoff
+- [x] All slice checkboxes marked done
+- [x] Step status set to `DONE` in `step-200/PROGRESS.md`
+- [x] Top-level `development-plan/PROGRESS.md` updated
+- [x] Handoff notes updated for Step 300 kickoff

@@ -1,6 +1,6 @@
 # Step 200 Progress
 
-Status: IN PROGRESS
+Status: DONE
 Last Updated: 2026-03-23
 
 ## Slice Checklist
@@ -9,7 +9,7 @@ Last Updated: 2026-03-23
 - [x] `220` Session service, auth dependency, backend auth routes
 - [x] `230` React auth context + login/register pages
 - [x] `240` Navigation/auth UX integration and styling pass
-- [ ] `250` Backend auth integration + regression tests
+- [x] `250` Backend auth integration + regression tests
 
 ## Planning Packet Checklist
 
@@ -162,11 +162,53 @@ Slice 240 acceptance delivered:
 - Focus-visible controls added for keyboard navigation baseline accessibility.
 - Frontend route/auth transition tests expanded to cover auth-nav state and protected route redirect flows.
 
+### Slice 250 (ks-v2 PR #19, merged)
+
+- Branch: `feat/step200-slice250-auth-guardrails`
+- PR: https://github.com/Kriegspiel/ks-v2/pull/19
+- Merge commit: `3042cce1b5dddcc83e4930db05c0c72200429ce2`
+
+Commands executed against `ks-v2/backend/src` with integration prerequisite satisfied via ephemeral Mongo on `localhost:27018`:
+
+```bash
+RUN_MONGO_INTEGRATION=1 ../.venv/bin/pytest tests/test_auth.py tests/test_password.py -v
+# result: PASS (22 passed, 0 skipped)
+
+RUN_MONGO_INTEGRATION=1 ../.venv/bin/pytest tests/test_auth.py tests/test_password.py --cov=app.routers.auth --cov=app.services.user_service --cov=app.services.session_service --cov-fail-under=90 -v
+# result: PASS (22 passed, 0 skipped), total coverage 95.07%
+
+RUN_MONGO_INTEGRATION=1 ../.venv/bin/pytest tests/test_auth.py -k "me or login or register" -v
+# result: PASS (13 passed, 0 skipped)
+
+../.venv/bin/ruff check app tests
+# result: PASS
+
+../.venv/bin/black --check app tests
+# result: PASS
+```
+
+Deployment update on rpi-server-02:
+
+- Updated deploy worktree `/tmp/ksv2-main-deploy` to `main` @ `3042cce1b5dddcc83e4930db05c0c72200429ce2`
+- Rebuilt/restarted runtime: `DOCKER_API_VERSION=1.41 docker compose up -d --build app nginx`
+
+Post-deploy verification:
+- `curl http://127.0.0.1:18000/health` => `{"status":"ok","db":"connected"}`
+- `POST /auth/register` smoke => 201 + `session_id` cookie issued
+
+Slice 250 acceptance delivered:
+- Added >=12 integration auth scenarios (13) across success/failure register/login/me/logout paths
+- Added explicit missing-email register validation coverage => 422
+- Added password-path continuity checks in dedicated password test module
+- Added deterministic invalid/expired session 401 regression coverage
+- Completed CI-compatible non-interactive quality gates for tests/coverage/lint/format
+
+
 ## Blockers
 
-- None for slice 210, 220, or 230.
+- None for slices 210-250.
 
 ## Notes
 
-- Next slices: `240`, followed by `250` backend auth regression hardening.
+- Step 200 is complete and ready dependency-wise for Step 300 implementation slices.
 - Keep backend/frontend sequencing aligned with packet dependencies.

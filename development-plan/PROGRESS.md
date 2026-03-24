@@ -1,12 +1,12 @@
 # Development Plan Progress
 
-Last Updated: 2026-03-22
-Overall Status: NOT STARTED
+Last Updated: 2026-03-23
+Overall Status: IN PROGRESS
 
 ## Step Rollup
 
 - [ ] `step-100` Foundation and Scaffold — `NOT STARTED`
-- [ ] `step-200` Auth and Sessions — `NOT STARTED`
+- [x] `step-200` Auth and Sessions — `DONE`
 - [ ] `step-300` Lobby and Game Lifecycle REST — `NOT STARTED`
 - [ ] `step-400` Real-Time Gameplay Core — `NOT STARTED`
 - [ ] `step-500` Core Game UI — `NOT STARTED`
@@ -16,7 +16,7 @@ Overall Status: NOT STARTED
 
 ## Active Work
 
-- None yet.
+- Step 300 planning packets ready for implementation; Step 200 dependencies complete.
 
 ## Blockers
 

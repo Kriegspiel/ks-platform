@@ -6,14 +6,14 @@ This file is the operator handoff companion for Step 200 implementation.
 
 ## Current State
 
-- Detailed planning packet exists for slices 210-250.
-- No implementation code changed in this planning commit.
+- Step 200 implementation complete across slices 210-250.
+- Backend auth/session contracts, frontend auth UX, and regression guardrails are merged/deployed.
 
 ## Next Action
 
-1. Start with `210/README.md`, then `210/IMPLEMENTATION.md`, then `210/TESTING.md`.
-2. Keep Mongo lifecycle assumptions aligned with Step 100 fixtures.
-3. Preserve the locked auth decision in all API/UI/test artifacts.
+1. Begin Step 300 slice implementation planning/execution (`310` first).
+2. Reuse Step 200 auth/session assumptions as upstream prerequisites.
+3. Keep API + frontend contract tests coupled as Step 300 expands lobby/game lifecycle flows.
 
 ## Guardrails
 
@@ -30,3 +30,11 @@ For each slice, append:
 - Exact commands executed
 - Outcome counts (pass/fail/skip)
 - Any justified deviation from packet docs
+
+
+## Step 200 Completion Snapshot
+
+- Final slice merged: https://github.com/Kriegspiel/ks-v2/pull/19
+- Final merge commit: `3042cce1b5dddcc83e4930db05c0c72200429ce2`
+- Runtime updated on rpi-server-02 via `/tmp/ksv2-main-deploy` compose stack rebuild/restart
+- Step 300 kickoff is unblocked
