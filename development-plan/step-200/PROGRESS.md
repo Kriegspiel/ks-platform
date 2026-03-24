@@ -8,7 +8,7 @@ Last Updated: 2026-03-23
 - [x] `210` User model, auth DTOs, password hashing, UserService
 - [x] `220` Session service, auth dependency, backend auth routes
 - [x] `230` React auth context + login/register pages
-- [ ] `240` Navigation/auth UX integration and styling pass
+- [x] `240` Navigation/auth UX integration and styling pass
 - [ ] `250` Backend auth integration + regression tests
 
 ## Planning Packet Checklist
