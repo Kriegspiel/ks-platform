@@ -13,7 +13,7 @@
 - [ ] Slice 210
 - [ ] Slice 220
 - [x] Slice 230
-- [ ] Slice 240
+- [x] Slice 240
 - [ ] Slice 250
 
 ## Slice Completion Gate (repeat per slice)

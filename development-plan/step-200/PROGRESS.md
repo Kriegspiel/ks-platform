@@ -129,6 +129,39 @@ Slice 230 acceptance delivered:
 - Auth routes (/auth/login, /auth/register) redirect authenticated users to lobby
 - Logout calls /auth/logout, clears UI auth state, and returns to login page
 
+### Slice 240 (ks-v2 PR #18, merged)
+
+- Branch: step-200-slice-240-auth-ux-nav-polish
+- PR: https://github.com/Kriegspiel/ks-v2/pull/18
+- Merge commit: b5e884ab187050756238c39921e9556becb9d31e
+
+Commands executed against ks-v2 frontend:
+
+- cd frontend && npm run test -- --run
+  - result: PASS (16 passed, 0 skipped)
+- cd frontend && npm run lint
+  - result: PASS
+- cd frontend && npm run build
+  - result: PASS
+
+Deployment update on rpi-server-02:
+
+- cd /home/fil/dev/kriegspiel/ks-v2 && git checkout main && git pull --ff-only origin main
+- cd frontend && npm install && npm run build
+- sudo systemctl restart ks-v2-backend ks-v2-frontend
+- systemctl status ks-v2-backend ks-v2-frontend --no-pager
+
+Post-deploy verification:
+- curl http://127.0.0.1:8000/health => {status:ok,db:connected}
+- curl http://127.0.0.1:4173 => frontend HTML served
+
+Slice 240 acceptance delivered:
+- Shared auth-aware header navigation rendered across primary routes.
+- Login/register forms now expose explicit loading + validation + error containers with role=alert and form aria-busy.
+- Route-guard redirect normalization prevents auth-route bounce loops and preserves protected-route target paths.
+- Focus-visible controls added for keyboard navigation baseline accessibility.
+- Frontend route/auth transition tests expanded to cover auth-nav state and protected route redirect flows.
+
 ## Blockers
 
 - None for slice 210, 220, or 230.
