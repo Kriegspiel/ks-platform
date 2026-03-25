@@ -1,7 +1,7 @@
 # Step 600 Progress
 
 Status: NOT STARTED
-Last Updated: 2026-03-16
+Last Updated: 2026-03-25
 
 ## Slice Checklist
 
@@ -13,16 +13,21 @@ Last Updated: 2026-03-16
 
 ## Test Evidence
 
-- Pending.
+- Pending implementation execution.
+- Slice-level heavy automated testing criteria now defined in each `TESTING.md` (commands, thresholds, merge gates, deterministic fixtures, regression matrix, skip policy, smoke/rollback).
 
 ## Blockers
 
-- Depends on `step-500`.
+- Depends on `step-500` implementation completion and stable route contracts.
 
-## Notes
+## Discovery Notes
 
-- Review page needs move-by-move replay with 3 perspectives (referee/white/black).
+- Expanded Step 600 from high-level README into a full packet: `CHECKLIST.md`, `HANDOFF.md`, and scope-based slice folders `610`-`650`.
+- Standardized QA bar across slices with explicit CI merge gates and rollback-ready procedures.
+- Added deterministic fixture requirements to prevent flaky ranking/pagination/replay tests.
+- Sequenced work so API contract stability (`610`) lands before dependent UI (`620`-`640`) and final integration suite (`650`).
 
 ## Handoff
 
-- None yet.
+- Begin at `step-600/CHECKLIST.md`, then execute each slice in order.
+- Record command outputs and PASS/FAIL per slice as work proceeds.
