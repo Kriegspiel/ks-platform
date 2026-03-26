@@ -7,7 +7,7 @@ Overall Status: IN PROGRESS
 
 - [ ] `step-100` Foundation and Scaffold — `NOT STARTED`
 - [x] `step-200` Auth and Sessions — `DONE`
-- [ ] `step-300` Lobby and Game Lifecycle REST — `IN PROGRESS`
+- [x] `step-300` Lobby and Game Lifecycle REST — `DONE`
 - [ ] `step-400` Real-Time Gameplay Core — `NOT STARTED`
 - [ ] `step-500` Core Game UI — `NOT STARTED`
 - [ ] `step-600` Review and Player Features — `NOT STARTED`
@@ -16,7 +16,7 @@ Overall Status: IN PROGRESS
 
 ## Active Work
 
-- Step 300 slices 310-340 implemented; slice 350 integration/regression remains.
+- Step 300 slices 310-350 implemented and merge-gated (DONE).
 - Step 600 packet expansion complete and ready for execution sequencing.
 - Step 700 packet expansion complete and ready for execution sequencing.
 - Step 800 packet expansion complete and ready for hardening/launch execution sequencing.

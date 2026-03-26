@@ -6,14 +6,14 @@ Operator handoff companion for Step 300 implementation execution.
 
 ## Current State
 
-- Detailed planning packet exists for slices 310-350.
-- No implementation code changed in this planning commit.
+- Slices 310-350 are implemented and merged in ks-v2.
+- Final slice-350 verification PR: https://github.com/Kriegspiel/ks-v2/pull/24 (merge commit 48b4890f039f84180a4f7ae2334ef438612cb9ec).
 
 ## Next Action
 
-1. Begin with `310/README.md`, then `310/IMPLEMENTATION.md`, then `310/TESTING.md`.
-2. Keep state machine constrained to `waiting -> active -> completed` everywhere.
-3. Use auth dependency from Step 200 and avoid middleware/session architecture drift.
+1. Step 300 is complete; use this packet as historical implementation/test evidence.
+2. Preserve lifecycle state machine `waiting -> active -> completed` as Step 400 work begins.
+3. Resolve host Docker API mismatch before relying on deployment smoke in this environment.
 
 ## Guardrails
 

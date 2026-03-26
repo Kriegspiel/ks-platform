@@ -1,6 +1,6 @@
 # Step 300 Progress
 
-Status: IN PROGRESS
+Status: DONE
 Last Updated: 2026-03-26
 
 ## Slice Checklist
@@ -9,7 +9,7 @@ Last Updated: 2026-03-26
 - [x] 320 GameService create/join/resign/delete lifecycle methods
 - [x] 330 Authenticated game API routes + contract errors
 - [x] 340 Lobby page + create/join/open/mine polling UX
-- [ ] 350 Integration and regression verification for lifecycle rules
+- [x] 350 Integration and regression verification for lifecycle rules
 
 ## Planning Packet Checklist
 
@@ -67,13 +67,30 @@ Last Updated: 2026-03-26
   - Waiting-game polling transitions to game route when game state becomes `active`
   - Open and my-games lists poll at bounded cadence with effect cleanup on unmount/rerender
 
+
+- Slice 350 implemented in ks-v2 and merged via PR: https://github.com/Kriegspiel/ks-v2/pull/24
+- Command evidence (rpi-server-02, ks-v2):
+  - cd backend/src && ../.venv/bin/pytest tests/test_game_lifecycle.py -v -> 5 passed, 0 skipped
+  - cd backend/src && ../.venv/bin/pytest tests/test_game_lifecycle.py tests/test_game_router.py tests/test_auth_router.py -v -> 23 passed, 4 skipped
+  - cd backend/src && ../.venv/bin/pytest tests/test_game_lifecycle.py --cov=app.routers.game --cov=app.services.game_service --cov=app.models.game --cov-fail-under=90 -v -> 5 passed, 0 skipped, coverage 92.86% (gate 90%)
+  - cd backend && .venv/bin/ruff check src/app src/tests -> pass
+  - cd backend && .venv/bin/black --check src/app src/tests -> pass
+  - cd frontend && npm run test -- --run Lobby App -> 13 passed, 0 skipped
+  - cd frontend && npm run lint -> pass
+  - cd frontend && npm run build -> pass
+- Slice 350 lifecycle verification coverage validated:
+  - end-to-end lifecycle state transitions and denial paths for create/join/open/mine/get/resign/delete
+  - auth protection regression check for game routes
+  - router error-envelope mapping matrix for standardized contract behavior
+
+
 - Deployment attempt on rpi-server-02 blocked by host Docker daemon API mismatch: `client version 1.52 is too new. Maximum supported API version is 1.41` while running `docker compose up -d --build ...`.
   - Route behavior verification completed via automated API tests above; host deployment requires Docker/Compose compatibility fix before runtime smoke on exposed ports.
 
 ## Blockers
 
 - Deployment/runtime smoke on rpi-server-02 currently blocked by Docker API mismatch (client 1.52 vs daemon max 1.41).
-- Next product slice: 350 integration and regression verification.
+- Step 300 implementation complete; next product step is 400 gameplay core.
 
 ## Notes
 
@@ -82,5 +99,5 @@ Last Updated: 2026-03-26
 
 ## Handoff
 
-- Continue in order 350 integration/regression gate.
-- Favor backend completion (330) before frontend polish (340) and final verification (350).
+- Step 300 is complete and merge-gated through slice 350.
+- Continue with Step 400 planning/implementation kickoff.
