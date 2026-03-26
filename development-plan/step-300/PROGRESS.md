@@ -7,7 +7,7 @@ Last Updated: 2026-03-26
 
 - [x] 310 Game models, DTOs, and join-code generator
 - [x] 320 GameService create/join/resign/delete lifecycle methods
-- [ ] 330 Authenticated game API routes + contract errors
+- [x] 330 Authenticated game API routes + contract errors
 - [ ] 340 Lobby page + create/join/open/mine polling UX
 - [ ] 350 Integration and regression verification for lifecycle rules
 
@@ -41,6 +41,21 @@ Last Updated: 2026-03-26
   - create/join/open/mine/get/resign/delete success paths
   - ownership/state denial paths
   - race-condition safe update/delete denial paths
+
+
+- Slice 330 implemented in ks-v2 and merged via PR: https://github.com/Kriegspiel/ks-v2/pull/22
+- Command evidence (rpi-server-02, ks-v2/backend/src):
+  - ../.venv/bin/pytest tests/test_game_router.py -v -> 15 passed, 0 skipped
+  - ../.venv/bin/pytest tests/test_game_router.py tests/test_auth_router.py -v -> 18 passed, 4 skipped
+  - ../.venv/bin/pytest tests/test_game_router.py --cov=app.routers.game --cov-fail-under=90 -v -> 15 passed, 0 skipped, coverage 94.37% (gate 90%)
+  - ../.venv/bin/ruff check src/app src/tests -> pass
+  - ../.venv/bin/black --check src/app src/tests -> pass
+- Slice 330 route contract coverage validated:
+  - Auth required for create/join/open/mine/get/resign/delete
+  - Domain error mapping envelope `{"error":{"code":...,"message":...,"details":{}}}` for handled game-service errors
+  - Lifecycle route wiring to GameService operations completed
+- Deployment attempt on rpi-server-02 blocked by host Docker daemon API mismatch: `client version 1.52 is too new. Maximum supported API version is 1.41` while running `docker compose up -d --build ...`.
+  - Route behavior verification completed via automated API tests above; host deployment requires Docker/Compose compatibility fix before runtime smoke on exposed ports.
 
 ## Blockers
 
