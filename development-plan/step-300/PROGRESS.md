@@ -1,11 +1,11 @@
 # Step 300 Progress
 
 Status: IN PROGRESS
-Last Updated: 2026-03-22
+Last Updated: 2026-03-25
 
 ## Slice Checklist
 
-- [ ] `310` Game models, DTOs, and join-code generator
+- [x] `310` Game models, DTOs, and join-code generator
 - [ ] `320` GameService create/join/resign/delete lifecycle methods
 - [ ] `330` Authenticated game API routes + contract errors
 - [ ] `340` Lobby page + create/join/open/mine polling UX
@@ -21,12 +21,19 @@ Last Updated: 2026-03-22
 
 ## Test Evidence
 
-- Planning artifact update only in this commit.
-- Implementation evidence pending per-slice execution.
+- Slice `310` implemented in `ks-v2` and merged via PR: https://github.com/Kriegspiel/ks-v2/pull/20
+- Command evidence (rpi-server-02, `ks-v2/backend/src`):
+  - `uv run pytest tests/test_game_models.py tests/test_code_generator.py -v` -> **15 passed**, **0 skipped**
+  - `uv run pytest tests/test_game_models.py tests/test_code_generator.py --cov=app.models.game --cov=app.services.code_generator --cov-fail-under=90 -v` -> **15 passed**, **0 skipped**, coverage **99.02%** (gate 90%)
+  - `uv run ruff check app tests` -> pass
+  - `uv run black --check app tests` -> pass
+- Manual smoke checks executed:
+  - `GameDocument` accepts `waiting` and rejects invalid lifecycle state (`paused`)
+  - `generate_game_code()` emits a valid uppercase safe code (`B3H7Q2`)
 
 ## Blockers
 
-- Implementation must wait for Step 200 completion + auth/session stability evidence.
+- None for slice `310`. Next slice: `320` lifecycle service methods.
 
 ## Notes
 
@@ -35,5 +42,5 @@ Last Updated: 2026-03-22
 
 ## Handoff
 
-- Start with `310/README.md` then execute in order `310 -> 320 -> 330 -> 340 -> 350`.
-- Favor backend completion (`310/320/330`) before frontend polish (`340`) and final verification (`350`).
+- Continue in order `320 -> 330 -> 340 -> 350`.
+- Favor backend completion (`320/330`) before frontend polish (`340`) and final verification (`350`).
