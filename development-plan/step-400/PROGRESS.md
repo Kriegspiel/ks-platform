@@ -8,7 +8,7 @@ Last Updated: 2026-03-26
 - [x] `410` Engine adapter + serialization primitives
 - [x] `420` Move/ask-any/resign execution API
 - [x] `430` Polling state endpoint + hidden-information shaping
-- [ ] `440` Clock service + timeout adjudication integration
+- [x] `440` Clock service + timeout adjudication integration
 - [ ] `450` Transcript/archive/recent-game APIs
 - [ ] `460` Gameplay integration/regression verification
 
@@ -62,6 +62,23 @@ Last Updated: 2026-03-26
   - Added projection helpers for hidden-information-safe FEN, deterministic action lists, and public-only referee logs.
   - Added state polling tests for white/black visibility, non-participant rejection, completed-game reveal, and route-level error behavior.
 
+
+### Slice 440 (ks-v2 PR #31)
+- Branch: `step-400-slice-440-clock-timeout`
+- PR: https://github.com/Kriegspiel/ks-v2/pull/31
+- Merge commit: `3e967ca3517ace9dd30fd64238867fe1529faf49`
+- Required commands executed in `ks-v2/backend/src`:
+  - `../.venv/bin/pytest tests/test_clock_service.py tests/test_game_timeouts.py -v` → **PASS** (10 passed, 0 skipped)
+  - `../.venv/bin/pytest tests/test_clock_service.py tests/test_game_timeouts.py --cov=app.services.clock_service --cov=app.services.game_service --cov-fail-under=85 -v` → **PASS** (10 passed, 0 skipped, total coverage 85.23%, gate >=85% passed)
+  - `../.venv/bin/ruff check app tests` → **PASS**
+  - `../.venv/bin/black --check app tests` → **PASS**
+- Additional impacted verification:
+  - `../.venv/bin/pytest tests/test_game_routes_move.py tests/test_game_state_polling.py -v` → **PASS** (25 passed, 0 skipped)
+- Delivered scope:
+  - Added deterministic `ClockService` (`get_remaining`, `deduct_and_increment`, `check_timeout`, `response_clock`).
+  - Integrated timeout adjudication into polling and mutation flows in `GameService`.
+  - Wired persisted `time_control` lifecycle plus normalized `clock` payload on state/move/ask responses.
+  - Added timeout-focused tests and route fixture updates to align schema.
 
 ## Blockers
 
