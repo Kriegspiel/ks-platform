@@ -7,7 +7,7 @@ Last Updated: 2026-03-26
 
 - [x] `410` Engine adapter + serialization primitives
 - [x] `420` Move/ask-any/resign execution API
-- [ ] `430` Polling state endpoint + hidden-information shaping
+- [x] `430` Polling state endpoint + hidden-information shaping
 - [ ] `440` Clock service + timeout adjudication integration
 - [ ] `450` Transcript/archive/recent-game APIs
 - [ ] `460` Gameplay integration/regression verification
@@ -48,9 +48,24 @@ Last Updated: 2026-03-26
   - Added strict participant/state/turn guards with deterministic error mapping (`FORBIDDEN`, `GAME_NOT_ACTIVE`, `NOT_YOUR_TURN`)
   - Persisted move history and engine-state transitions, including terminal outcome signaling and active resign completion
 
+### Slice 430 (ks-v2 PR #30)
+- Branch: `step-400-slice-430-polling-projection`
+- PR: https://github.com/Kriegspiel/ks-v2/pull/30
+- Merge commit: `28b100bf13beb9302a2815e83f0f5cc628804927`
+- Required commands executed in `ks-v2/backend/src`:
+  - `../.venv/bin/pytest tests/test_game_state_polling.py -v` → **PASS** (9 passed, 0 skipped)
+  - `../.venv/bin/pytest tests/test_game_state_polling.py --cov=app.routers.game --cov=app.services.state_projection --cov-fail-under=85 -v` → **PASS** (9 passed, 0 skipped, total coverage 87.60%, gate >=85% passed)
+  - `../.venv/bin/ruff check app tests` → **PASS**
+  - `../.venv/bin/black --check app tests` → **PASS**
+- Delivered scope:
+  - Added polling endpoint `GET /api/game/{game_id}/state` with participant-only authorization and standardized error mapping.
+  - Added projection helpers for hidden-information-safe FEN, deterministic action lists, and public-only referee logs.
+  - Added state polling tests for white/black visibility, non-participant rejection, completed-game reveal, and route-level error behavior.
+
+
 ## Blockers
 
-- None blocking slice 430 start.
+- None blocking slice 440 start.
 
 ## Notes
 
@@ -60,5 +75,5 @@ Last Updated: 2026-03-26
 
 ## Handoff
 
-- Continue execution order: `430 -> 440 -> 450 -> 460`.
+- Continue execution order: `440 -> 450 -> 460`.
 - Keep backend-first sequencing; slice `460` remains verification-only and should not introduce contract drift.
