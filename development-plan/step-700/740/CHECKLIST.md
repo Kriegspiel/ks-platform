@@ -1,6 +1,6 @@
 # Slice 740 Checklist
-- [ ] backup/restore/health scripts implemented
-- [ ] scripts executable + linted
-- [ ] automated test commands run
-- [ ] thresholds and CI gates met
-- [ ] progress evidence logged
+- [x] backup/restore/health scripts implemented
+- [x] scripts executable + linted
+- [x] automated test commands run
+- [x] thresholds and CI gates met
+- [x] progress evidence logged
