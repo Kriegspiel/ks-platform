@@ -8,7 +8,7 @@ Last Updated: 2026-03-26
 - [x] `710` Container runtime and Compose finalization
 - [x] `720` NGINX production and dev routing policy
 - [x] `730` CI/CD workflow gates
-- [ ] `740` Backup and restore and health operations scripts
+- [x] `740` Backup and restore and health operations scripts
 - [ ] `750` Structured logging and operational telemetry
 
 ## Test Evidence
@@ -52,6 +52,29 @@ Last Updated: 2026-03-26
   - frontend: `npm run build` ✅
 
 ### 730 Evidence (rpi-server-02)
+### 740 Evidence (rpi-server-02)
+- ks-v2 PR merged: https://github.com/Kriegspiel/ks-v2/pull/38
+- Merge commit: `23e9059e000f9c0d4c3e14adf544c78c583f60cf`
+- Script artifacts:
+  - `scripts/backup.sh` (UTC timestamped compressed dump + 30-day retention pruning)
+  - `scripts/restore.sh` (path validation + explicit confirmation / `--force`)
+  - `scripts/health-check.sh` (service checks + API health + disk threshold)
+  - `scripts/test-step-740.sh` (deterministic scripted validation)
+- CI gate updates:
+  - `.github/workflows/ci.yml` adds `ops-scripts-quality` required job
+  - `deploy-main` now needs `[backend, frontend, ops-scripts]`
+- Local packet/gate validation:
+  - `docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:stable scripts/backup.sh scripts/restore.sh scripts/health-check.sh` ✅
+  - `./scripts/backup.sh --help`, `./scripts/restore.sh --help`, `./scripts/health-check.sh --help` ✅
+  - `./scripts/backup.sh` -> non-empty artifact (`backups/ks-backup-20260326T220922Z.archive.gz`, 854 bytes) ✅
+  - `./scripts/restore.sh "$LATEST_BACKUP" --force` ✅
+  - `./scripts/health-check.sh` ✅
+  - Regression checks: invalid restore path fails safely; retention pruning verified ✅
+- Impacted project gates:
+  - backend: black + ruff + pytest/cov -> `149 passed, 22 skipped, 1 warning`; coverage `95.62%` ✅
+  - frontend: lint + test + build -> `23 passed`; build succeeded ✅
+- Evidence log: `ks-v2/.evidence/step700-slice740-20260326T220912Z.log`
+
 - ks-v2 PR merged: https://github.com/Kriegspiel/ks-v2/pull/37
 - Merge commit: `cc657ccac19bd8590a95e3b873e1d18654190cec`
 - Workflow artifact: `.github/workflows/ci.yml`
