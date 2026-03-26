@@ -11,11 +11,11 @@
 
 ## Required Execution Order
 
-- [ ] Slice 710
-- [ ] Slice 720
-- [ ] Slice 730
-- [ ] Slice 740
-- [ ] Slice 750
+- [x] Slice 710
+- [x] Slice 720
+- [x] Slice 730
+- [x] Slice 740
+- [x] Slice 750
 
 ## Slice Completion Gate (repeat for each slice)
 
@@ -32,7 +32,7 @@
 
 ## Step Completion Gate
 
-- [ ] Slices 710-750 all complete
-- [ ] Step status set to `DONE` in `step-700/PROGRESS.md`
-- [ ] Top-level `development-plan/PROGRESS.md` updated
-- [ ] Step 800 kickoff notes added to `step-700/HANDOFF.md`
+- [x] Slices 710-750 all complete
+- [x] Step status set to `DONE` in `step-700/PROGRESS.md`
+- [x] Top-level `development-plan/PROGRESS.md` updated
+- [x] Step 800 kickoff notes added to `step-700/HANDOFF.md`

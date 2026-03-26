@@ -1,7 +1,7 @@
 # Slice 750 Checklist
-- [ ] structlog configured with env-aware output
-- [ ] auth + game lifecycle events instrumented
-- [ ] secret leakage guards in place
-- [ ] automated tests executed
-- [ ] CI/security gates satisfied
-- [ ] progress evidence logged
+- [x] structlog configured with env-aware output
+- [x] auth + game lifecycle events instrumented
+- [x] secret leakage guards in place
+- [x] automated tests executed
+- [x] CI/security gates satisfied
+- [x] progress evidence logged

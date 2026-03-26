@@ -1,6 +1,6 @@
 # Step 700 Progress
 
-Status: IN PROGRESS
+Status: DONE
 Last Updated: 2026-03-26
 
 ## Slice Checklist
@@ -9,7 +9,7 @@ Last Updated: 2026-03-26
 - [x] `720` NGINX production and dev routing policy
 - [x] `730` CI/CD workflow gates
 - [x] `740` Backup and restore and health operations scripts
-- [ ] `750` Structured logging and operational telemetry
+- [x] `750` Structured logging and operational telemetry
 
 ## Test Evidence
 
@@ -97,7 +97,7 @@ Last Updated: 2026-03-26
 
 ## Blockers
 
-- BuildKit API mismatch persists on host (`client 1.52`, daemon max `1.41`); keep `DOCKER_BUILDKIT=0` fallback for compose-heavy validations in Slice 740.
+- BuildKit API mismatch persists on host (`client 1.52`, daemon max `1.41`); keep `DOCKER_BUILDKIT=0` fallback for compose-heavy validations.
 
 ## Discovery Notes
 
@@ -109,5 +109,26 @@ Last Updated: 2026-03-26
 
 ## Handoff
 
-- Proceed to `step-700/740` packet.
-- Preserve 710/720/730 evidence references in subsequent slice PRs.
+- Step 700 complete through Slice 750; transition execution focus to Step 800 packet.
+- Preserve Step 700 evidence references for hardening and launch-readiness audit trails.
+
+### 750 Evidence (rpi-server-02)
+- ks-v2 PR merged: https://github.com/Kriegspiel/ks-v2/pull/39
+- Merge commit: `ac95f7885e29ff76d077186fdae1d26561dda6a5`
+- Logging artifacts:
+  - `backend/src/app/logging_config.py` (env-aware structlog renderer: JSON prod, console dev/test)
+  - `backend/src/app/routers/auth.py` (auth register/login/logout telemetry)
+  - `backend/src/app/services/game_service.py` (game create/join/move/ask-any/resign telemetry)
+  - `backend/src/tests/test_logging.py` (renderer contract)
+  - `backend/src/tests/test_telemetry_contracts.py` (field consistency + no secret leakage contract)
+- Validation gates:
+  - `backend/.venv/bin/ruff check backend/src/app backend/src/tests` ✅
+  - `cd backend/src && ../.venv/bin/python -m pytest tests/test_logging.py -v` ✅
+  - `cd backend/src && ../.venv/bin/python -m pytest tests/test_auth.py -k "login or register" -v` ✅ (known skips)
+  - `cd backend/src && ../.venv/bin/python -m pytest tests/test_game_service.py -k "create or join or resign or complete" -v` ✅
+  - `cd backend/src && ENV=production ../.venv/bin/python -m pytest tests/test_logging.py -k json -v` ✅
+  - `cd backend/src && ../.venv/bin/python -m pytest -q` -> `153 passed, 22 skipped, 1 warning` ✅
+  - `docker compose logs app | tail -n 500 > /tmp/app.log` + `grep -En "password|session_id|token=" /tmp/app.log` -> no hits ✅
+- Evidence logs:
+  - `ks-v2/.evidence/step700-slice750-20260326T230009Z.log`
+  - `ks-v2/.evidence/step700-slice750-lint-20260326T232137Z.log`
