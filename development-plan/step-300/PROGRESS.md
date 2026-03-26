@@ -59,7 +59,8 @@ Last Updated: 2026-03-26
 
 ## Blockers
 
-- None for slices 310 and 320. Next slice: 330 authenticated game routes.
+- Deployment/runtime smoke on rpi-server-02 currently blocked by Docker API mismatch (client 1.52 vs daemon max 1.41).
+- Next product slice: 340 lobby page + create/join/open/mine polling UX.
 
 ## Notes
 
@@ -68,5 +69,5 @@ Last Updated: 2026-03-26
 
 ## Handoff
 
-- Continue in order 330 -> 340 -> 350.
+- Continue in order 340 -> 350.
 - Favor backend completion (330) before frontend polish (340) and final verification (350).
