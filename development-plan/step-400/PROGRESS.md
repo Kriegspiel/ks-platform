@@ -9,7 +9,7 @@ Last Updated: 2026-03-26
 - [x] `420` Move/ask-any/resign execution API
 - [x] `430` Polling state endpoint + hidden-information shaping
 - [x] `440` Clock service + timeout adjudication integration
-- [ ] `450` Transcript/archive/recent-game APIs
+- [x] `450` Transcript/archive/recent-game APIs
 - [ ] `460` Gameplay integration/regression verification
 
 ## Planning Packet Checklist
@@ -80,9 +80,24 @@ Last Updated: 2026-03-26
   - Wired persisted `time_control` lifecycle plus normalized `clock` payload on state/move/ask responses.
   - Added timeout-focused tests and route fixture updates to align schema.
 
+### Slice 450 (ks-v2 PR #32)
+- Branch: step-400-slice-450-history-read-apis
+- PR: https://github.com/Kriegspiel/ks-v2/pull/32
+- Merge commit: e4f73354f25b4b80e91f787f5800f89a97980dc4
+- Required commands executed in ks-v2/backend/src:
+  - ../.venv/bin/pytest tests/test_game_history_routes.py -v -> PASS (4 passed, 0 skipped)
+  - ../.venv/bin/pytest tests/test_game_routes_move.py tests/test_game_state_polling.py tests/test_game_history_routes.py --cov=app.routers.game --cov=app.services.game_service --cov-fail-under=85 -v -> PASS (29 passed, 0 skipped, total coverage 86.43%, gate >=85% passed)
+  - ../.venv/bin/ruff check app tests -> PASS
+  - ../.venv/bin/black --check app tests -> PASS
+- Delivered scope:
+  - Added transcript endpoint GET /api/game/{game_id}/moves with participant/public visibility rules (public only when game is completed).
+  - Added recent endpoint GET /api/game/recent with archive-backed completed-game summaries, descending completion ordering, and limit clamping.
+  - Added get_game_or_archive service helper and wired metadata/transcript reads to active-first then archive fallback.
+  - Added dedicated history tests for access matrix, archive fallback, recent sorting/limits, and route error mapping.
+
 ## Blockers
 
-- None blocking slice 440 start.
+- None blocking slice 460 start.
 
 ## Notes
 
@@ -92,5 +107,5 @@ Last Updated: 2026-03-26
 
 ## Handoff
 
-- Continue execution order: `440 -> 450 -> 460`.
+- Continue execution order: `460`.
 - Keep backend-first sequencing; slice `460` remains verification-only and should not introduce contract drift.
