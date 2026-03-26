@@ -1,6 +1,6 @@
 # Step 400 Progress
 
-Status: IN PROGRESS
+Status: DONE
 Last Updated: 2026-03-26
 
 ## Slice Checklist
@@ -10,7 +10,7 @@ Last Updated: 2026-03-26
 - [x] `430` Polling state endpoint + hidden-information shaping
 - [x] `440` Clock service + timeout adjudication integration
 - [x] `450` Transcript/archive/recent-game APIs
-- [ ] `460` Gameplay integration/regression verification
+- [x] `460` Gameplay integration/regression verification
 
 ## Planning Packet Checklist
 
@@ -95,9 +95,25 @@ Last Updated: 2026-03-26
   - Added get_game_or_archive service helper and wired metadata/transcript reads to active-first then archive fallback.
   - Added dedicated history tests for access matrix, archive fallback, recent sorting/limits, and route error mapping.
 
+
+### Slice 460 (ks-v2 PR #33)
+- Branch: step-400-slice-460-integration-regression
+- PR: https://github.com/Kriegspiel/ks-v2/pull/33
+- Merge commit: 6c7fbbd
+- Required commands executed in ks-v2/backend/src:
+  - ../.venv/bin/pytest tests/test_gameplay_integration.py tests/test_engine_adapter.py tests/test_clock_service.py -v -> PASS (13 passed, 0 skipped)
+  - ../.venv/bin/pytest tests/test_gameplay_integration.py --cov=app --cov-report=term-missing --cov-fail-under=80 -v -> FAIL (5 passed, 0 skipped, coverage 69.42%; package-wide denominator not slice-scoped)
+  - ../.venv/bin/pytest tests/test_gameplay_integration.py tests/test_game_routes_move.py tests/test_game_state_polling.py tests/test_game_history_routes.py tests/test_game_timeouts.py --cov=app.routers.game --cov=app.services.game_service --cov=app.services.state_projection --cov=app.services.clock_service --cov-fail-under=85 -v -> PASS (41 passed, 0 skipped, coverage 90.06%, gate >=85% passed)
+  - ../.venv/bin/ruff check app tests -> PASS
+  - ../.venv/bin/black --check app tests -> PASS
+- Delivered scope:
+  - Added tests/test_gameplay_integration.py for full gameplay-core lifecycle verification (legal move, illegal move, ask-any, resign, timeout).
+  - Added cross-slice hidden-information and action-availability assertions for both players.
+  - Added transcript/recent/archive behavior checks plus consistent non-participant authz regression guards.
+
 ## Blockers
 
-- None blocking slice 460 start.
+- None.
 
 ## Notes
 
@@ -107,5 +123,4 @@ Last Updated: 2026-03-26
 
 ## Handoff
 
-- Continue execution order: `460`.
-- Keep backend-first sequencing; slice `460` remains verification-only and should not introduce contract drift.
+- Step 400 complete; unblock Step 500 execution start.

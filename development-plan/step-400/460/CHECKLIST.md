@@ -2,25 +2,25 @@
 
 ## Planning
 
-- [ ] Re-read `step-400/README.md`
-- [ ] Re-read this slice `README.md`
-- [ ] Claim slice `460` in `step-400/PROGRESS.md`
+- [x] Re-read `step-400/README.md`
+- [x] Re-read this slice `README.md`
+- [x] Claim slice `460` in `step-400/PROGRESS.md`
 
 ## Implementation
 
-- [ ] Add/extend integration fixtures and gameplay regression tests
-- [ ] Cover lifecycle, hidden-info, authz, timeout, archive scenarios
-- [ ] Keep production code untouched unless test-proven fix is required
+- [x] Add/extend integration fixtures and gameplay regression tests
+- [x] Cover lifecycle, hidden-info, authz, timeout, archive scenarios
+- [x] Keep production code untouched unless test-proven fix is required
 
 ## Testing
 
-- [ ] `cd src && pytest tests/test_gameplay_integration.py tests/test_engine_adapter.py tests/test_clock_service.py -v`
-- [ ] `cd src && pytest tests/test_gameplay_integration.py --cov=app --cov-report=term-missing --cov-fail-under=80 -v`
-- [ ] `cd src && ruff check app tests`
-- [ ] `cd src && black --check app tests`
+- [x] `cd src && pytest tests/test_gameplay_integration.py tests/test_engine_adapter.py tests/test_clock_service.py -v`
+- [x] `cd src && pytest tests/test_gameplay_integration.py --cov=app --cov-report=term-missing --cov-fail-under=80 -v`
+- [x] `cd src && ruff check app tests`
+- [x] `cd src && black --check app tests`
 
 ## Evidence + Handoff
 
-- [ ] Record command outcomes in `step-400/PROGRESS.md`
-- [ ] Capture blockers/follow-ups if any
-- [ ] Mark slice done only after automated gates pass
+- [x] Record command outcomes in `step-400/PROGRESS.md`
+- [x] Capture blockers/follow-ups if any
+- [x] Mark slice done only after automated gates pass
