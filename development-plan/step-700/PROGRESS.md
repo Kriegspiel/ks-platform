@@ -7,7 +7,7 @@ Last Updated: 2026-03-26
 
 - [x] `710` Container runtime and Compose finalization
 - [x] `720` NGINX production and dev routing policy
-- [ ] `730` CI/CD workflow gates
+- [x] `730` CI/CD workflow gates
 - [ ] `740` Backup and restore and health operations scripts
 - [ ] `750` Structured logging and operational telemetry
 
@@ -51,18 +51,40 @@ Last Updated: 2026-03-26
   - frontend: `npm run test -- --run` -> `23 passed` ✅
   - frontend: `npm run build` ✅
 
+### 730 Evidence (rpi-server-02)
+- ks-v2 PR merged: https://github.com/Kriegspiel/ks-v2/pull/37
+- Merge commit: `cc657ccac19bd8590a95e3b873e1d18654190cec`
+- Workflow artifact: `.github/workflows/ci.yml`
+  - jobs: `backend-quality`, `frontend-quality`, `deploy-main`
+  - deterministic controls: `concurrency`, `PYTHONHASHSEED=0`, `TZ=UTC`, service health check, job timeouts
+  - deploy gate: `if github.event_name == push && github.ref == refs/heads/main` with `needs: [backend, frontend]`
+  - triage artifacts: backend JUnit + coverage XML upload, frontend dist upload
+- Local verification gates:
+  - `backend/.venv/bin/python -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml')); print('ci.yml parse ok')"` ✅
+  - `cd backend/src && ../.venv/bin/black --check app tests` ✅
+  - `cd backend/src && ../.venv/bin/ruff check app tests` ✅
+  - `cd backend/src && ../.venv/bin/pytest tests -v --cov=app --cov-report=term-missing --cov-fail-under=80 --cov-report=xml --junitxml=pytest-junit.xml` ✅
+    - Result: `149 passed, 22 skipped, 1 warning`; coverage `95.62%`
+  - `cd frontend && npm ci && npm run lint && npm run test -- --run && npm run build` ✅
+    - Result: lint pass, `23 passed`, production build succeeded
+- GitHub Actions evidence (PR #37):
+  - `backend-quality` ✅
+  - `frontend-quality` ✅
+  - `deploy-main` skipped on PR by policy ✅
+
 ## Blockers
 
-- BuildKit API mismatch persists on host (`client 1.52`, daemon max `1.41`); use `DOCKER_BUILDKIT=0` fallback for compose builds in Slice 730 CI alignment work.
+- BuildKit API mismatch persists on host (`client 1.52`, daemon max `1.41`); keep `DOCKER_BUILDKIT=0` fallback for compose-heavy validations in Slice 740.
 
 ## Discovery Notes
 
 - Slice 710 implemented in ks-v2 PR #35 and merged to `main`.
 - Slice 720 implemented in ks-v2 PR #36 and merged to `main`.
+- Slice 730 implemented in ks-v2 PR #37 and merged to `main`.
 - Compose startup ordering validated with `service_completed_successfully` and `service_healthy` dependencies.
 - Frontend artifact handoff uses named volume contract (`frontend_dist`) consumed by nginx.
 
 ## Handoff
 
-- Proceed to `step-700/730` packet.
-- Preserve 710 and 720 evidence references in subsequent slice PRs.
+- Proceed to `step-700/740` packet.
+- Preserve 710/720/730 evidence references in subsequent slice PRs.
