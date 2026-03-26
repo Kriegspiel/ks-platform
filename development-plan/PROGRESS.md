@@ -1,13 +1,13 @@
 # Development Plan Progress
 
-Last Updated: 2026-03-25
+Last Updated: 2026-03-26
 Overall Status: IN PROGRESS
 
 ## Step Rollup
 
 - [ ] `step-100` Foundation and Scaffold — `NOT STARTED`
 - [x] `step-200` Auth and Sessions — `DONE`
-- [ ] `step-300` Lobby and Game Lifecycle REST — `NOT STARTED`
+- [ ] `step-300` Lobby and Game Lifecycle REST — `IN PROGRESS`
 - [ ] `step-400` Real-Time Gameplay Core — `NOT STARTED`
 - [ ] `step-500` Core Game UI — `NOT STARTED`
 - [ ] `step-600` Review and Player Features — `NOT STARTED`
@@ -16,7 +16,7 @@ Overall Status: IN PROGRESS
 
 ## Active Work
 
-- Step 300 planning packets ready for implementation; Step 200 dependencies complete.
+- Step 300 slices 310-340 implemented; slice 350 integration/regression remains.
 - Step 600 packet expansion complete and ready for execution sequencing.
 - Step 700 packet expansion complete and ready for execution sequencing.
 - Step 800 packet expansion complete and ready for hardening/launch execution sequencing.

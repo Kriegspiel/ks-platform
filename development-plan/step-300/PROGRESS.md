@@ -8,7 +8,7 @@ Last Updated: 2026-03-26
 - [x] 310 Game models, DTOs, and join-code generator
 - [x] 320 GameService create/join/resign/delete lifecycle methods
 - [x] 330 Authenticated game API routes + contract errors
-- [ ] 340 Lobby page + create/join/open/mine polling UX
+- [x] 340 Lobby page + create/join/open/mine polling UX
 - [ ] 350 Integration and regression verification for lifecycle rules
 
 ## Planning Packet Checklist
@@ -54,13 +54,26 @@ Last Updated: 2026-03-26
   - Auth required for create/join/open/mine/get/resign/delete
   - Domain error mapping envelope `{"error":{"code":...,"message":...,"details":{}}}` for handled game-service errors
   - Lifecycle route wiring to GameService operations completed
+
+- Slice 340 implemented in ks-v2 and merged via PR: https://github.com/Kriegspiel/ks-v2/pull/23
+- Command evidence (rpi-server-02, ks-v2/frontend):
+  - npm run test -- --run Lobby -> 5 passed, 0 skipped
+  - npm run test -- --run App -> 8 passed, 0 skipped
+  - npm run lint -> pass
+  - npm run build -> pass
+- Slice 340 frontend behavior coverage validated:
+  - Lobby create flow displays join code and waiting state immediately
+  - Join by code and open-list join both navigate to `/game/:gameId` on success
+  - Waiting-game polling transitions to game route when game state becomes `active`
+  - Open and my-games lists poll at bounded cadence with effect cleanup on unmount/rerender
+
 - Deployment attempt on rpi-server-02 blocked by host Docker daemon API mismatch: `client version 1.52 is too new. Maximum supported API version is 1.41` while running `docker compose up -d --build ...`.
   - Route behavior verification completed via automated API tests above; host deployment requires Docker/Compose compatibility fix before runtime smoke on exposed ports.
 
 ## Blockers
 
 - Deployment/runtime smoke on rpi-server-02 currently blocked by Docker API mismatch (client 1.52 vs daemon max 1.41).
-- Next product slice: 340 lobby page + create/join/open/mine polling UX.
+- Next product slice: 350 integration and regression verification.
 
 ## Notes
 
@@ -69,5 +82,5 @@ Last Updated: 2026-03-26
 
 ## Handoff
 
-- Continue in order 340 -> 350.
+- Continue in order 350 integration/regression gate.
 - Favor backend completion (330) before frontend polish (340) and final verification (350).
