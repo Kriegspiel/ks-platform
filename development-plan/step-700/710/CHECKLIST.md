@@ -1,6 +1,6 @@
 # Slice 710 Checklist
-- [ ] Dockerfiles + compose finalized
-- [ ] Automated commands executed
-- [ ] Thresholds and CI gates satisfied
-- [ ] Regression matrix complete
-- [ ] Progress evidence logged
+- [x] Dockerfiles + compose finalized
+- [x] Automated commands executed
+- [x] Thresholds and CI gates satisfied
+- [x] Regression matrix complete
+- [x] Progress evidence logged
