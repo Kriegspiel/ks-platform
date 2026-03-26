@@ -1,11 +1,11 @@
 # Step 400 Progress
 
 Status: IN PROGRESS
-Last Updated: 2026-03-22
+Last Updated: 2026-03-26
 
 ## Slice Checklist
 
-- [ ] `410` Engine adapter + serialization primitives
+- [x] `410` Engine adapter + serialization primitives
 - [ ] `420` Move/ask-any/resign execution API
 - [ ] `430` Polling state endpoint + hidden-information shaping
 - [ ] `440` Clock service + timeout adjudication integration
@@ -22,20 +22,27 @@ Last Updated: 2026-03-22
 
 ## Test Evidence
 
-- Planning artifact update only in this commit.
-- Implementation evidence pending per-slice execution.
+### Slice 410 (ks-v2 PR #28)
+- Branch: `step-400-slice-410-engine-adapter`
+- Merge commit: `e479c049bd21ccf38420e5b404eb93a2c066f5a3`
+- Required commands executed in `ks-v2/backend/src`:
+  - `../.venv/bin/pytest tests/test_engine_adapter.py -v` → **PASS** (5 passed, 0 skipped)
+  - `../.venv/bin/pytest tests/test_engine_adapter.py --cov=app.services.engine_adapter --cov-fail-under=90 -v` → **PASS** (5 passed, 0 skipped, coverage 92%, gate >=90% passed)
+  - `../.venv/bin/ruff check app tests` → **PASS**
+  - `../.venv/bin/black --check app tests` → **PASS**
+- Runtime smoke:
+  - `attempt_move(create_new_game(any_rule=True), "e2e4")["move_done"]` → `True`
 
 ## Blockers
 
-- Step 300 lifecycle/API contracts must be complete and stable before Step 400 execution begins.
+- None for starting slice 420.
 
 ## Notes
 
-- Record exact command outputs (or summarized outcome counts + key failure lines) as each slice is executed.
-- Do not mark a slice complete without running all non-blocked commands in that slice `TESTING.md`.
+- Slice 410 delivered engine adapter primitives only; no route/service orchestration, polling API shaping, or clock integration was introduced.
 - Clock/time-based tests should use deterministic time control (freezegun/monkeypatch) where available to avoid flaky CI outcomes.
 
 ## Handoff
 
-- Execute in order: `410 -> 420 -> 430 -> 440 -> 450 -> 460`.
-- Keep backend-first sequencing; slice `460` is verification-only and should not introduce contract drift.
+- Continue execution order: `420 -> 430 -> 440 -> 450 -> 460`.
+- Keep backend-first sequencing; slice `460` remains verification-only and should not introduce contract drift.
