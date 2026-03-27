@@ -10,11 +10,12 @@ Last Updated: 2026-03-27
 - [ ] `930` Blog + changelog system and editorial pipeline
 - [ ] `940` Rules, trust surfaces, and discoverability (SEO/analytics/legal)
 - [ ] `950` Preview, deploy, regression, and launch readiness for website track
+- [ ] `960` Content repository organization and operational hygiene
 
 ## Test Evidence
 
 - Pending implementation execution.
-- Slice-level testing requirements include exact commands, CI gate mapping, accessibility checks, smoke checks, visual regression checks, broken-link validation, and rollback verification.
+- Slice-level testing requirements include exact commands, CI gate mapping, accessibility checks, smoke checks, visual regression checks, broken-link validation, static-regeneration verification, and rollback verification.
 
 ## Blockers
 
@@ -23,11 +24,13 @@ Last Updated: 2026-03-27
 ## Discovery Notes
 
 - Step 900 creates a full website/content execution packet spanning product marketing, content operations, and trust/discoverability.
+- `Kriegspiel/content` is explicitly treated as the source of truth for public content consumed by `ks-home`.
+- Any content update must trigger static page regeneration, with automated validation for markdown/frontmatter/links/build/sitemap/feed before merge or deploy.
 - Required public pages are explicitly tracked as release scope: home, leaderboard, blog, changelog, rules.
 - SEO, analytics, legal/privacy, and content pipeline controls are treated as first-class delivery requirements, not post-launch cleanup.
 
 ## Handoff
 
 - Start at `step-900/CHECKLIST.md`.
-- Execute slices in order `910` → `950` unless a dependency exception is documented and approved.
+- Execute slices in order `910` → `960` unless a dependency exception is documented and approved.
 - Record command outputs and PASS/FAIL evidence as each slice completes.

@@ -9,6 +9,7 @@ Create durable blog/changelog publishing surfaces with strict content validation
 - Blog list/detail/archive surfaces
 - Changelog list/detail surfaces with semantic version/date ordering
 - Authoring workflow (Markdown/MDX + frontmatter contracts)
+- Content-triggered static regeneration for `ks-home`
 - Feed generation and content QA automation
 
 ## Deliverables
@@ -16,3 +17,4 @@ Create durable blog/changelog publishing surfaces with strict content validation
 - Implemented `/blog`, `/blog/:slug`, `/changelog`, `/changelog/:slug`
 - Editorial pipeline docs and commands
 - RSS/Atom and sitemap integration
+- Verified content-update trigger from `Kriegspiel/content` to static regeneration in `ks-home`

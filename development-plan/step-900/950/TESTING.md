@@ -23,6 +23,12 @@ npm ci
 npm run lint:markdown
 npm run lint:links
 npm run validate:frontmatter
+
+# content-triggered static regen + publication assets
+cd ../ks-home
+npm run content:trigger:simulate -- --from=../content --verify-static-regen
+npm run sitemap:generate -- --check
+npm run feeds:generate -- --check
 ```
 
 ## CI Merge Gates
@@ -36,9 +42,15 @@ Required checks:
 - `website-visual-regression`
 - `website-smoke-public-routes`
 - `website-seo-validate`
+- `content-lint-markdown`
 - `content-link-check`
 - `content-frontmatter-check`
-- `preview-deploy`
+- `website-build-public`
+- `website-static-regen-on-content`
+- `website-sitemap-check`
+- `website-feed-check`
+- `preview-deploy-website-pr`
+- `preview-deploy-content-pr`
 
 ## Regression Matrix (Release Blocking)
 
@@ -65,4 +77,5 @@ curl -fsS https://<site-domain>/rules >/dev/null
 ./scripts/deploy/smoke.sh --routes /,/leaderboard,/blog,/changelog,/rules
 ```
 
+- Failed deploys must auto-trigger rollback and produce PASS smoke evidence.
 - Rollback drill must pass at least once before launch signoff.

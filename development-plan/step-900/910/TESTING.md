@@ -11,6 +11,7 @@ npm run lint
 npm run test -- --runInBand --watch=false
 npm run routes:validate
 npm run content:schema:check
+npm run content:source-contract:check
 npm run build
 ```
 
@@ -18,6 +19,7 @@ npm run build
 
 - Route validation must report 0 missing required routes.
 - Content schema validation must report 0 invalid documents.
+- Content source contract check must report `Kriegspiel/content` source lock is valid.
 - Unit test coverage floor: lines >= 80%, branches >= 75%.
 
 ## CI Merge Gates
@@ -28,6 +30,7 @@ Required checks:
 - `website-unit`
 - `routes-contract-check`
 - `content-schema-check`
+- `content-source-contract-check`
 
 ## Accessibility / Smoke / Regression
 
@@ -36,5 +39,5 @@ Required checks:
 
 ## Skip Policy + Prereqs
 
-- No skips allowed for route/schema checks on `main`.
+- No skips allowed for route/schema/source-contract checks on `main`.
 - Any environment-based skip must include owner + mitigation ETA.

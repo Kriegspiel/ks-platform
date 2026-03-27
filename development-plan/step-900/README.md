@@ -4,7 +4,7 @@
 
 Plan and execute the public-facing Kriegspiel web experience (marketing + content surfaces) with production-grade quality gates, including landing/home, leaderboard, blog, changelog, rules, and supporting SEO/analytics/legal/content-ops workflows.
 
-Step 900 turns product capabilities from prior steps into a discoverable, indexable, and maintainable public web presence.
+Step 900 turns product capabilities from prior steps into a discoverable, indexable, and maintainable public web presence, with `Kriegspiel/content` as the source of truth and deterministic static regeneration in `ks-home` on content updates.
 
 ## Read First
 
@@ -23,6 +23,7 @@ Step 900 turns product capabilities from prior steps into a discoverable, indexa
 ### 910 — Information Architecture, Routing, and Content Contracts
 - Define canonical page map and route ownership for home, leaderboard, blog, changelog, and rules
 - Formalize shared content/data contracts (metadata, author/date/version tags, structured frontmatter)
+- Lock `Kriegspiel/content` as source-of-truth repository for public editorial content consumed by `ks-home`
 - Lock navigation, URL, and slug policy including redirects and deprecation behavior
 - Publish non-functional baselines (performance budgets, accessibility floor, localization readiness)
 
@@ -35,8 +36,8 @@ Step 900 turns product capabilities from prior steps into a discoverable, indexa
 ### 930 — Blog + Changelog System and Editorial Pipeline
 - Implement blog index/detail, changelog index/detail, and archive views
 - Define authoring pipeline (Markdown/MDX conventions, linting, preview flow, publishing checklist)
-- Add feeds/sitemaps metadata (RSS/Atom + entry metadata validity)
-- Gate content quality with lint, link validation, and schema/frontmatter checks
+- Require static page regeneration in `ks-home` whenever content in `Kriegspiel/content` changes
+- Gate content quality with markdown, frontmatter, link, build, sitemap, and feed checks
 
 ### 940 — Rules, Trust Surfaces, and Discoverability (SEO/Analytics/Legal)
 - Build canonical rules page with versioning and change reference links
@@ -45,17 +46,23 @@ Step 900 turns product capabilities from prior steps into a discoverable, indexa
 - Add legal/trust surfaces (privacy policy, terms shell, cookie/telemetry disclosure where applicable)
 
 ### 950 — Preview, Deploy, Regression, and Launch Readiness for Website Track
-- Add deterministic preview environments for content and UI changes
-- Define CI merge gates for website/content surfaces
+- Add deterministic preview environments for website and content PRs
+- Define CI merge gates for website/content surfaces including content-triggered static regeneration
 - Require accessibility, smoke, visual-regression, and broken-link checks as release blockers
-- Publish launch/rollback runbook and ownership matrix for ongoing content ops
+- Enforce rollback behavior on failed deploys (auto-revert to last known good release)
+
+### 960 — Content Repository Organization and Operational Hygiene
+- Define `Kriegspiel/content` information architecture (folders, naming, ownership metadata)
+- Standardize content lifecycle states (draft/review/published/archived) and retention policy
+- Enforce repository structure checks and ownership rules in CI
+- Document contributor workflow for scalable, low-risk content operations
 
 ## Exit Criteria
 
-- All slices `910`-`950` complete with evidence and no unresolved critical issues
+- All slices `910`-`960` complete with evidence and no unresolved critical issues
 - Required pages live and validated: home, leaderboard, blog, changelog, rules
 - SEO/analytics/legal/privacy baseline implemented and reviewed
-- CI gates enforce automated website/content quality checks
+- CI gates enforce automated website/content quality checks including static-regeneration checks on content updates
 - Preview + production deploy and rollback flows documented and test-validated
 
 ## Out of Scope

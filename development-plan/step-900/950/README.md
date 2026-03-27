@@ -6,7 +6,7 @@ Make website/content delivery safe and repeatable through preview environments, 
 
 ## Scope
 
-- PR preview environments
+- PR preview environments for website and content PRs
 - Production deploy workflow and rollback pathway
 - End-to-end website quality gate matrix
 - Operational runbook and owner handoff
@@ -16,3 +16,4 @@ Make website/content delivery safe and repeatable through preview environments, 
 - Preview/deploy pipeline definition
 - Regression matrix for required website routes
 - Launch + rollback runbook with evidence checklist
+- Failed-deploy rollback policy with automation hooks
