@@ -1,6 +1,6 @@
 # Step 900 Progress
 
-Status: IN PROGRESS (910 + 920 + 930 + 940 COMPLETE)
+Status: IN PROGRESS (910 + 920 + 930 + 940 + 950 COMPLETE)
 Last Updated: 2026-03-27
 
 ## Slice Checklist
@@ -9,7 +9,7 @@ Last Updated: 2026-03-27
 - [x] `920` Landing/home + leaderboard experience
 - [x] `930` Blog + changelog system and editorial pipeline
 - [x] `940` Rules, trust surfaces, and discoverability (SEO/analytics/legal)
-- [ ] `950` Preview, deploy, regression, and launch readiness for website track
+- [x] `950` Preview, deploy, regression, and launch readiness for website track
 - [ ] `960` Content repository organization and operational hygiene
 
 ## Test Evidence
@@ -30,26 +30,33 @@ Last Updated: 2026-03-27
   - npm run content:source-contract:check
   - npm run build
 - Coverage evidence from slice 920 run: lines 99.45%, branches 90.47%, functions 100%, statements 99.45%.
-- No CI checks configured on website repos yet; merge completed after local gate pass evidence.
-
-## Blockers
-
-- None for slice 920.
-- None for slice 930.
-- None for slice 940.
-
-## Test Evidence
 
 - Slice 930 execution PASS (ks-home PR #19, content PR #6).
 - ks-home + content gates PASS for slice 930:
   - content: npm ci; npm run lint:markdown; npm run lint:links; npm run validate:frontmatter; npm run build:content-index
   - ks-home: npm ci; npm run test -- --runInBand --watch=false; npm run test:e2e -- --grep "blog|changelog"; npm run build; npm run content:trigger:simulate -- --from=../content --verify-static-regen; npm run sitemap:generate -- --check; npm run feeds:generate -- --check; npm run test:a11y -- --routes=/blog,/changelog; npm run test:smoke -- --routes=/blog,/changelog
 
-
 - Slice 940 execution PASS (ks-home PR #20, content PR #7).
 - ks-home + content gates PASS for slice 940:
   - content: npm ci; npm run lint:markdown; npm run lint:links; npm run validate:frontmatter; npm run build:content-index
   - ks-home: npm ci; npm run lint; npm run test -- --runInBand --watch=false; npm run seo:validate -- --routes=/,/leaderboard,/blog,/changelog,/rules; npm run structured-data:check; npm run analytics:contract:test; npm run test:a11y -- --routes=/rules,/privacy,/terms; npm run build; npm run test:smoke -- --routes=/rules,/privacy,/terms; npm run routes:validate
+
+- Slice 950 execution PASS (ks-home PR #21, content PR #8).
+- CI gate formalization shipped via GitHub Actions workflows:
+  - ks-home: `.github/workflows/website-gates.yml`
+  - content: `.github/workflows/content-gates.yml`
+- ks-home + content gates PASS for slice 950:
+  - ks-home: npm run lint; npm run test -- --runInBand --watch=false; npm run test:e2e -- --grep "home|leaderboard|blog|changelog|rules"; npm run test:a11y -- --routes=/,/leaderboard,/blog,/changelog,/rules; npm run test:visual -- --suite=full-public-site; npm run test:smoke -- --routes=/,/leaderboard,/blog,/changelog,/rules; npm run seo:validate -- --routes=/,/leaderboard,/blog,/changelog,/rules; npm run build; npm run content:trigger:simulate -- --from=../content --verify-static-regen; npm run sitemap:generate -- --check; npm run feeds:generate -- --check
+  - content: npm ci; npm run lint:markdown; npm run lint:links; npm run validate:frontmatter; npm run build:content-index
+- Rollback drill PASS using `./scripts/deploy/rollback.sh --to previous` against synthetic artifact links.
+- Smoke script verified (`BASE_URL=https://example.com ./scripts/deploy/smoke.sh --routes "/"`).
+
+## Blockers
+
+- None for slice 920.
+- None for slice 930.
+- None for slice 940.
+- No technical blocker for slice 960; launch cutover still depends on Fil-approved Cloudflare tunnel + DNS mapping.
 
 ## Discovery Notes
 
