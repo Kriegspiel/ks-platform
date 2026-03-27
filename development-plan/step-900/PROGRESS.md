@@ -7,7 +7,7 @@ Last Updated: 2026-03-27
 
 - [x] `910` Information architecture, routing, and content contracts
 - [x] `920` Landing/home + leaderboard experience
-- [ ] `930` Blog + changelog system and editorial pipeline
+- [x] `930` Blog + changelog system and editorial pipeline
 - [ ] `940` Rules, trust surfaces, and discoverability (SEO/analytics/legal)
 - [ ] `950` Preview, deploy, regression, and launch readiness for website track
 - [ ] `960` Content repository organization and operational hygiene
@@ -35,7 +35,14 @@ Last Updated: 2026-03-27
 ## Blockers
 
 - None for slice 920.
-- Slice 930 can begin.
+- None for slice 930.
+
+## Test Evidence
+
+- Slice 930 execution PASS (ks-home PR #19, content PR #6).
+- ks-home + content gates PASS for slice 930:
+  - content: npm ci; npm run lint:markdown; npm run lint:links; npm run validate:frontmatter; npm run build:content-index
+  - ks-home: npm ci; npm run test -- --runInBand --watch=false; npm run test:e2e -- --grep "blog|changelog"; npm run build; npm run content:trigger:simulate -- --from=../content --verify-static-regen; npm run sitemap:generate -- --check; npm run feeds:generate -- --check; npm run test:a11y -- --routes=/blog,/changelog; npm run test:smoke -- --routes=/blog,/changelog
 
 ## Discovery Notes
 
