@@ -1,6 +1,6 @@
 # Step 900 Progress
 
-Status: IN PROGRESS (910 + 920 COMPLETE)
+Status: IN PROGRESS (910 + 920 + 930 + 940 COMPLETE)
 Last Updated: 2026-03-27
 
 ## Slice Checklist
@@ -8,7 +8,7 @@ Last Updated: 2026-03-27
 - [x] `910` Information architecture, routing, and content contracts
 - [x] `920` Landing/home + leaderboard experience
 - [x] `930` Blog + changelog system and editorial pipeline
-- [ ] `940` Rules, trust surfaces, and discoverability (SEO/analytics/legal)
+- [x] `940` Rules, trust surfaces, and discoverability (SEO/analytics/legal)
 - [ ] `950` Preview, deploy, regression, and launch readiness for website track
 - [ ] `960` Content repository organization and operational hygiene
 
@@ -36,6 +36,7 @@ Last Updated: 2026-03-27
 
 - None for slice 920.
 - None for slice 930.
+- None for slice 940.
 
 ## Test Evidence
 
@@ -43,6 +44,12 @@ Last Updated: 2026-03-27
 - ks-home + content gates PASS for slice 930:
   - content: npm ci; npm run lint:markdown; npm run lint:links; npm run validate:frontmatter; npm run build:content-index
   - ks-home: npm ci; npm run test -- --runInBand --watch=false; npm run test:e2e -- --grep "blog|changelog"; npm run build; npm run content:trigger:simulate -- --from=../content --verify-static-regen; npm run sitemap:generate -- --check; npm run feeds:generate -- --check; npm run test:a11y -- --routes=/blog,/changelog; npm run test:smoke -- --routes=/blog,/changelog
+
+
+- Slice 940 execution PASS (ks-home PR #20, content PR #7).
+- ks-home + content gates PASS for slice 940:
+  - content: npm ci; npm run lint:markdown; npm run lint:links; npm run validate:frontmatter; npm run build:content-index
+  - ks-home: npm ci; npm run lint; npm run test -- --runInBand --watch=false; npm run seo:validate -- --routes=/,/leaderboard,/blog,/changelog,/rules; npm run structured-data:check; npm run analytics:contract:test; npm run test:a11y -- --routes=/rules,/privacy,/terms; npm run build; npm run test:smoke -- --routes=/rules,/privacy,/terms; npm run routes:validate
 
 ## Discovery Notes
 
