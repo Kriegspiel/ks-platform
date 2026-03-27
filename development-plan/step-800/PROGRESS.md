@@ -6,7 +6,7 @@ Last Updated: 2026-03-27
 ## Slice Checklist
 
 - [x] `810` Regression gate hardening
-- [ ] `820` Security verification and abuse-path coverage
+- [x] `820` Security verification and abuse-path coverage
 - [ ] `830` Failure and recovery behavior certification
 - [ ] `840` Documentation and runbook reconciliation
 - [ ] `850` Launch readiness signoff and rollback drill
@@ -28,9 +28,30 @@ Last Updated: 2026-03-27
   - packet runner `scripts/test-step-810.sh` passed end-to-end
   - post-deploy smoke + rollback validation wrappers executed
 
+- ks-v2 PR #55 merged: https://github.com/Kriegspiel/ks-v2/pull/55
+- Merge commit: `c539bd98bdfac50795152a899f1988875b93bf59`
+- CI required checks passed on PR #55:
+  - `lint`
+  - `backend-regression`
+  - `frontend-regression`
+  - `integration-smoke`
+  - `security-tests`
+  - `authz-regression`
+  - `dependency-audit`
+  - `ops-scripts-quality`
+- Slice-820 lanes executed locally with deterministic evidence:
+  - security tests: `8 passed`
+  - authz regression: `40 passed, 21 skipped, 136 deselected`
+  - dependency audit: frontend high/critical gate passed; backend pip-audit passed with one temporary ignored advisory (`CVE-2026-30922`)
+  - packet runner `scripts/test-step-820.sh` passed end-to-end
+  - backend regression re-run: `175 passed, 22 skipped` (coverage gate >=85 passed)
+  - post-deploy smoke + rollback validation wrappers executed
+
 ## Blockers
 
 - None for 810 closure.
+- Slice 830 prep: run edge-proxy rate-limit verification in environment with routed NGINX auth path (Slice 820 recorded waiver).
+- Slice 830 prep: remove temporary `pip-audit --ignore-vuln CVE-2026-30922` once upstream dependency chain publishes patched compatible release.
 
 ## Discovery Notes
 
