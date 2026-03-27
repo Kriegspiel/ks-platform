@@ -1,12 +1,12 @@
 # Step 900 Progress
 
-Status: IN PROGRESS (910 COMPLETE)
+Status: IN PROGRESS (910 + 920 COMPLETE)
 Last Updated: 2026-03-27
 
 ## Slice Checklist
 
 - [x] `910` Information architecture, routing, and content contracts
-- [ ] `920` Landing/home + leaderboard experience
+- [x] `920` Landing/home + leaderboard experience
 - [ ] `930` Blog + changelog system and editorial pipeline
 - [ ] `940` Rules, trust surfaces, and discoverability (SEO/analytics/legal)
 - [ ] `950` Preview, deploy, regression, and launch readiness for website track
@@ -15,14 +15,27 @@ Last Updated: 2026-03-27
 ## Test Evidence
 
 - Slice 910 execution PASS (ks-home PR #16, content PR #3).
-- ks-home gates PASS: npm ci, npm run lint, npm run test -- --runInBand --watch=false, npm run routes:validate, npm run content:schema:check, npm run content:source-contract:check, npm run build.
-- Coverage evidence from slice 910 run: lines 98.48%, branches 81.81%.
+- Slice 920 execution PASS (ks-home PR #17, content PR #4).
+- ks-home gates PASS for slice 920:
+  - npm ci
+  - npm run lint
+  - npm run test -- --runInBand --watch=false
+  - npm run test:coverage:check -- --lines 82 --functions 82 --branches 78 --statements 82
+  - npm run test:e2e -- --grep "home|leaderboard"
+  - npm run test:smoke -- --routes=/,/leaderboard,/rules
+  - npm run test:a11y -- --routes=/,/leaderboard
+  - npm run test:visual -- --suite=marketing-core
+  - npm run routes:validate
+  - npm run content:schema:check
+  - npm run content:source-contract:check
+  - npm run build
+- Coverage evidence from slice 920 run: lines 99.45%, branches 90.47%, functions 100%, statements 99.45%.
 - No CI checks configured on website repos yet; merge completed after local gate pass evidence.
 
 ## Blockers
 
-- None for slice 910.
-- Slice 920 can begin.
+- None for slice 920.
+- Slice 930 can begin.
 
 ## Discovery Notes
 
