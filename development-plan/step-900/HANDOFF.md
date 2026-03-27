@@ -89,3 +89,10 @@ Step 900 should deliver:
 - Search/share discoverability baseline (SEO + social metadata) with legal/privacy guardrails
 - Release and rollback runbook with clear ownership for content and platform operations
 - Stable, enforceable content-repo organization standards for maintainable long-term publishing
+
+
+## Slice 930 complete
+
+- Blog/changelog templates, archive, feed/sitemap checks, and content-triggered regen simulation shipped.
+- Editorial pipeline documented in `content/docs/editorial-pipeline.md`.
+- Draft preview flow enabled via `KS_PREVIEW_DRAFTS=true` in `ks-home` builds.
