@@ -13,7 +13,7 @@ Overall Status: IN PROGRESS
 - [ ] step-600 Review and Player Features — IN PROGRESS (610-630 complete)
 - [x] step-700 Infra and Operations — DONE
 - [ ] step-800 Hardening and Launch Readiness — IN PROGRESS (810-840 merged; 850 in PR #58 pending CI infra)
-- [ ] step-900 Website and Content Track — NOT STARTED
+- [ ] step-900 Website and Content Track — IN PROGRESS (910 complete)
 
 ## Active Work
 
@@ -26,6 +26,8 @@ Overall Status: IN PROGRESS
 - Step 700 packet expansion complete and ready for execution sequencing.
 - Step 800 slices 810-840 complete and merged (ks-v2 PRs #54, #55, #56, #57). Slice 850 is implemented in ks-v2 PR #58 with local passing evidence; merge blocked by CI Docker Hub auth failure on `mongo:7` pulls.
 - Step 900 packet expansion complete and ready for website/content execution sequencing (slices 910-960, including content source-of-truth and static-regeneration gates).
+- Step 900 slice 910 complete and merged: content PR #3 and ks-home PR #16 (IA/routes/content-contract baseline + static-generation foundation + local quality gate evidence).
+
 
 ## Blockers
 
