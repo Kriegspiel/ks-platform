@@ -29,6 +29,57 @@ Execution handoff packet for delivering and operating the Kriegspiel public webs
 - Analytics must be privacy-aware and documented; no silent tracking additions.
 - Rules page changes require version tagging and explicit changelog linkage.
 
+
+## Operator-Required Cloudflared/Domain Cutover (`kriegspiel.org`)
+
+This section is an explicit handoff for actions requiring human interaction.
+
+### What the Agent Can Do
+
+- Prepare exact commands, config templates, and dry-run checks.
+- Validate `cloudflared` installation/version and existing tunnel inventory.
+- Run post-change verification (`dig`, `curl`, smoke scripts) and attach evidence.
+- Execute rollback scripts after explicit go-ahead.
+
+### What Fil Must Do (Interactive/Approval)
+
+1. Complete `cloudflared tunnel login` on the production host (`fil@rpi-server-02.localdomain`).
+2. Approve/create/select the production tunnel used for `kriegspiel.org`.
+3. Approve DNS route mapping for:
+   - `kriegspiel.org`
+   - `app.kriegspiel.org`
+   - `api.kriegspiel.org`
+4. Approve production cutover timing and any rollback execution that affects live traffic.
+
+### Minimal Live Runbook
+
+```bash
+# interactive auth
+cloudflared tunnel login
+
+# tunnel selection/creation
+cloudflared tunnel list
+cloudflared tunnel create ks-platform-prod   # only if needed
+
+# DNS mapping
+cloudflared tunnel route dns ks-platform-prod kriegspiel.org
+cloudflared tunnel route dns ks-platform-prod app.kriegspiel.org
+cloudflared tunnel route dns ks-platform-prod api.kriegspiel.org
+
+# service + validation
+sudo cloudflared service install
+sudo systemctl restart cloudflared
+sudo systemctl status cloudflared --no-pager
+curl -fsS https://kriegspiel.org >/dev/null
+curl -fsS https://app.kriegspiel.org >/dev/null
+curl -fsS https://api.kriegspiel.org/health >/dev/null
+```
+
+### Fallback
+
+- On failed cutover checks: restore previous DNS routes, restart prior known-good tunnel/service config, and rerun smoke.
+- Keep rollback evidence in step-900 validation logs before closing launch readiness.
+
 ## Handoff to Operations
 
 Step 900 should deliver:

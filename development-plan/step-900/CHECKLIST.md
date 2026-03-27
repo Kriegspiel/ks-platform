@@ -32,6 +32,23 @@
 - [ ] Any skipped checks recorded with owner, risk, and mitigation ETA
 - [ ] Slice marked done in `step-900/PROGRESS.md`
 
+
+## Operator-Required Cloudflared/Domain Gate (`kriegspiel.org`)
+
+### Fil-required (interactive/approval)
+
+- [ ] `cloudflared tunnel login` completed on production host and auth artifact confirmed.
+- [ ] Production tunnel selected (or created with approval) and UUID recorded in release notes.
+- [ ] DNS routes approved/applied for `kriegspiel.org`, `app.kriegspiel.org`, and `api.kriegspiel.org`.
+- [ ] Production cutover window approved by Fil.
+
+### Agent-automatable (post-approval)
+
+- [ ] `cloudflared --version` and `cloudflared tunnel list` evidence captured.
+- [ ] `cloudflared` service installed/restarted and healthy (`systemctl status`).
+- [ ] Domain + endpoint verification captured (`dig`, `curl`, smoke routes).
+- [ ] Rollback command path validated (restore previous DNS/tunnel target).
+
 ## Step Completion Gate
 
 - [ ] Slices 910-960 all complete

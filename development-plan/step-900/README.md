@@ -57,6 +57,69 @@ Step 900 turns product capabilities from prior steps into a discoverable, indexa
 - Enforce repository structure checks and ownership rules in CI
 - Document contributor workflow for scalable, low-risk content operations
 
+
+## Operator-Required Steps (Cloudflared + `kriegspiel.org`)
+
+These steps are mandatory for production DNS/tunnel cutover and cannot be fully automated by the agent because they require Cloudflare account auth and/or Fil approval.
+
+### Responsibility Split
+
+| Area | Agent can automate | Requires Fil interaction/approval |
+|---|---|---|
+| Preflight + command prep | Generate/review runbook, validate local config, run dry-run checks | Confirm environment + approve production execution window |
+| `cloudflared` auth | Verify binary/version, confirm service unit/files, run non-auth checks | `cloudflared tunnel login` in browser-backed Cloudflare session |
+| Tunnel lifecycle | List/select existing tunnel, template config, install service files | Create new tunnel if needed and confirm tunnel UUID to use |
+| DNS routing (`kriegspiel.org`) | Propose records and verify with `dig`/`curl` after change | Authorize `cloudflared tunnel route dns` for `kriegspiel.org` records |
+| Cutover/rollback | Run smoke checks and rollback scripts after approval | Final go/no-go and rollback approval if production impact occurs |
+
+### Required Operator Runbook (Production)
+
+```bash
+# 0) preflight (agent can run)
+cloudflared --version
+cloudflared tunnel list
+
+# 1) interactive auth (Fil-required)
+cloudflared tunnel login
+
+# 2) create or select tunnel (Fil approval required for create)
+cloudflared tunnel create ks-platform-prod        # only if no approved tunnel exists
+cloudflared tunnel list                           # capture NAME + UUID used for prod
+
+# 3) map DNS under kriegspiel.org (Fil approval required)
+cloudflared tunnel route dns ks-platform-prod kriegspiel.org
+cloudflared tunnel route dns ks-platform-prod app.kriegspiel.org
+cloudflared tunnel route dns ks-platform-prod api.kriegspiel.org
+
+# 4) install/restart service + checks (agent can run after approval)
+sudo cloudflared service install
+sudo systemctl restart cloudflared
+sudo systemctl status cloudflared --no-pager
+journalctl -u cloudflared -n 100 --no-pager
+
+# 5) external verification (agent can run)
+dig +short kriegspiel.org
+DIG_APP=$(dig +short app.kriegspiel.org)
+DIG_API=$(dig +short api.kriegspiel.org)
+printf "app=%s\napi=%s\n" "$DIG_APP" "$DIG_API"
+curl -I https://kriegspiel.org
+curl -I https://app.kriegspiel.org
+curl -I https://api.kriegspiel.org/health
+```
+
+### Acceptance Checks
+
+- `cloudflared tunnel list` shows exactly one approved production tunnel in active use.
+- `kriegspiel.org`, `app.kriegspiel.org`, and `api.kriegspiel.org` resolve through Cloudflare tunnel routing.
+- `systemctl status cloudflared` is `active (running)` with no crash-loop.
+- HTTPS checks return successful status (200/30x for site pages, 200 for API health).
+
+### Rollback / Fallback Notes
+
+- If DNS or tunnel verification fails, revert DNS routes to prior known-good target before retrying.
+- Keep previous tunnel credentials/config available; do not delete old tunnel until 24h stable runtime.
+- If post-cutover smoke fails, execute platform rollback then restore previous DNS mapping and re-run smoke.
+
 ## Exit Criteria
 
 - All slices `910`-`960` complete with evidence and no unresolved critical issues
