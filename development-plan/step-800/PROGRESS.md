@@ -8,7 +8,7 @@ Last Updated: 2026-03-27
 - [x] `810` Regression gate hardening
 - [x] `820` Security verification and abuse-path coverage
 - [x] `830` Failure and recovery behavior certification
-- [ ] `840` Documentation and runbook reconciliation
+- [x] `840` Documentation and runbook reconciliation
 - [ ] `850` Launch readiness signoff and rollback drill
 
 ## Test Evidence
@@ -68,9 +68,33 @@ Last Updated: 2026-03-27
   - packet runner `scripts/test-step-830.sh` passed end-to-end
   - post-deploy smoke + rollback validation wrappers executed
 
+- ks-v2 PR #57 merged: https://github.com/Kriegspiel/ks-v2/pull/57
+- Merge commit: `d630a60bf5d3c5b5c1545b8a6371e7ada789816f`
+- CI required checks passed on PR #57:
+  - `lint`
+  - `backend-regression`
+  - `frontend-regression`
+  - `integration-smoke`
+  - `security-tests`
+  - `authz-regression`
+  - `dependency-audit`
+  - `ops-scripts-quality`
+  - `resilience-tests`
+  - `frontend-error-ux`
+  - `recovery-smoke`
+  - `docs-lint`
+  - `docs-link-check`
+  - `docs-quickstart-verify`
+- Slice-840 lanes executed locally with deterministic evidence:
+  - docs lint: `docs-lint passed for 13 markdown files`
+  - docs link check: `Markdown link check passed for 13 files`
+  - docs quickstart verify: compose boot + health verification passed
+  - packet runner `scripts/test-step-840.sh` passed end-to-end
+  - post-deploy smoke + rollback validation wrappers executed
+
 ## Blockers
 
-- Slice 840 prep: reconcile runbooks with new slice-830 CI gates (`resilience-tests`, `frontend-error-ux`, `recovery-smoke`) and attach links in release checklist.
+- Slice 850 pending: launch readiness signoff packet + rollback drill signoff artifacts not yet completed.
 - Carryover risk from slice 820: remove temporary `pip-audit --ignore-vuln CVE-2026-30922` once upstream dependency chain publishes patched compatible release.
 
 ## Discovery Notes
