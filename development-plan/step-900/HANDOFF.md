@@ -96,3 +96,10 @@ Step 900 should deliver:
 - Blog/changelog templates, archive, feed/sitemap checks, and content-triggered regen simulation shipped.
 - Editorial pipeline documented in `content/docs/editorial-pipeline.md`.
 - Draft preview flow enabled via `KS_PREVIEW_DRAFTS=true` in `ks-home` builds.
+
+
+## Slice 950 complete
+
+- CI gate workflows are now codified in ks-home and content repositories with blocking check names matching step-900/950/TESTING.md.
+- Release runbook and regression matrix live in ks-home under docs/release/ with deploy smoke + rollback scripts in scripts/deploy/.
+- Remaining launch dependency before go-live: Fil-approved Cloudflare tunnel authentication + DNS cutover for kriegspiel.org.
