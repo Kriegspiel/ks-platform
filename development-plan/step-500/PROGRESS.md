@@ -1,6 +1,6 @@
 # Step 500 Progress
 
-Status: IN PROGRESS
+Status: DONE
 Last Updated: 2026-03-27
 
 ## Slice Checklist
@@ -9,7 +9,7 @@ Last Updated: 2026-03-27
 - [x] 520 Game page polling loop + gameplay actions
 - [x] 530 Phantom tray + client persistence
 - [x] 540 Promotion modal + interaction polish
-- [ ] 550 Home/rules/navigation polish
+- [x] 550 Home/rules/navigation polish
 
 ## Planning Packet Checklist
 
@@ -65,13 +65,24 @@ Last Updated: 2026-03-27
   - cd frontend && npm run test:e2e -- --grep "promotion flow" → BLOCKED (Missing script: test:e2e)
 - Evidence log: ks-v2/.evidence/step500-slice540-frontend-gates.txt
 
+
+### Slice 550 (implemented in ks-v2 PR #44)
+- PR: https://github.com/Kriegspiel/ks-v2/pull/44
+- Merge commit (ks-v2/main): fafb458
+- Automated checks:
+  - cd frontend && CI=1 npm run test -- Home → PASS (3 passed, 0 skipped)
+  - cd frontend && CI=1 npm run test -- Nav → PASS (2 passed, 0 skipped)
+  - cd frontend && npm run lint → PASS
+  - cd frontend && npm run test:e2e -- --grep home to active game navigation → BLOCKED (Missing script: test:e2e)
+  - Additional impacted suite: cd frontend && CI=1 npm run test -- App Home Nav Lobby → PASS (18 passed, 0 skipped)
+- Evidence log: ks-v2/.evidence/step500-slice550-frontend-gates.txt
+
 ## Blockers
 
 - Host runtime on rpi-server-02 uses Node 18, while frontend toolchain (Vite 7 / react-router 7) expects Node >=20.19. This blocks Step 510 runtime smoke and may impact interactive validation for Step 520.
-- Slice 520/530/540 packet e2e gates remain blocked because frontend/package.json has no test:e2e script.
+- Slice 520/530/540/550 packet e2e gates remain blocked because frontend/package.json has no test:e2e script.
 
 ## Handoff
 
-- Next execution order: 550.
-- Carry forward UI-state contracts from 510 (orientation, highlightedSquares, phantomSquares, disabled, square click algebraic callback).
-- Carry forward 520 contracts: game-state poll cadence/cleanup, possible-actions gating, and action re-poll behavior.
+- Step 500 is complete through slice 550.
+- Step 600 kickoff can begin with review/player-facing surfaces now that home/rules/nav UX is finalized.

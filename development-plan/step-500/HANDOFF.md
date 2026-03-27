@@ -6,14 +6,14 @@ Operator handoff companion for Step 500 game-UI execution.
 
 ## Current State
 
-- Detailed planning packet exists for slices 510-550.
-- No implementation code changed in this planning commit.
+- Step 500 execution is complete through slices 510-550.
+- Implementation merged in ks-v2 PRs #40-#44.
 
 ## Next Action
 
-1. Start with `510/README.md`, then `510/IMPLEMENTATION.md`, then `510/TESTING.md`.
-2. Lock square-selection semantics/orientation before wiring poll actions.
-3. Keep phantom state strictly client-side.
+1. Start Step 600 execution from `development-plan/step-600/README.md`.
+2. Prioritize review/player-facing surfaces now that home/rules/nav UX is finalized.
+3. Keep hidden-information guardrails unchanged as Step 600 features expand.
 
 ## Guardrails
 

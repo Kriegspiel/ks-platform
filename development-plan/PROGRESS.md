@@ -9,14 +9,14 @@ Overall Status: IN PROGRESS
 - [x] step-200 Auth and Sessions — DONE
 - [x] step-300 Lobby and Game Lifecycle REST — DONE
 - [x] step-400 Real-Time Gameplay Core — DONE
-- [ ] step-500 Core Game UI — IN PROGRESS
+- [x] step-500 Core Game UI — DONE
 - [ ] step-600 Review and Player Features — NOT STARTED
 - [x] step-700 Infra and Operations — DONE
 - [ ] step-800 Hardening and Launch Readiness — NOT STARTED
 
 ## Active Work
 
-- Step 500 slices 510-540 implemented and merge-gated in ks-v2 PRs #40-#43 (IN PROGRESS; slice 550 pending).
+- Step 500 execution complete through slice 550 with merged ks-v2 PRs #40-#44 (DONE).
 - Step 700 execution complete through slice 750 with merged ks-v2 PRs #35-#39 (DONE).
 - Step 300 slices 310-350 implemented and merge-gated (DONE).
 - Step 400 completed through slice 460 with merge-gated evidence in ks-v2 PRs #28-#33 (DONE).

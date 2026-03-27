@@ -10,23 +10,23 @@
 
 ## Required Execution Order
 
-- [ ] Slice 510
-- [ ] Slice 520
-- [ ] Slice 530
-- [ ] Slice 540
-- [ ] Slice 550
+- [x] Slice 510
+- [x] Slice 520
+- [x] Slice 530
+- [x] Slice 540
+- [x] Slice 550
 
 ## Slice Completion Gate (repeat per slice)
 
-- [ ] Implementation matches slice `IMPLEMENTATION.md`
-- [ ] All commands in slice `TESTING.md` executed
-- [ ] Expected pass/fail/skip behavior confirmed
-- [ ] Runtime smoke checks executed where specified
-- [ ] Results recorded in `step-500/PROGRESS.md`
+- [x] Implementation matches slice `IMPLEMENTATION.md`
+- [x] All commands in slice `TESTING.md` executed
+- [x] Expected pass/fail/skip behavior confirmed
+- [x] Runtime smoke checks executed where specified
+- [x] Results recorded in `step-500/PROGRESS.md`
 
 ## Step Completion Gate
 
-- [ ] All slice checkboxes marked done
-- [ ] Step status set to `DONE` in `step-500/PROGRESS.md`
-- [ ] Top-level `development-plan/PROGRESS.md` updated
-- [ ] Handoff notes updated for Step 600 kickoff
+- [x] All slice checkboxes marked done
+- [x] Step status set to `DONE` in `step-500/PROGRESS.md`
+- [x] Top-level `development-plan/PROGRESS.md` updated
+- [x] Handoff notes updated for Step 600 kickoff
