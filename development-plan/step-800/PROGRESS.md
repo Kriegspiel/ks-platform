@@ -9,7 +9,7 @@ Last Updated: 2026-03-27
 - [x] `820` Security verification and abuse-path coverage
 - [x] `830` Failure and recovery behavior certification
 - [x] `840` Documentation and runbook reconciliation
-- [ ] `850` Launch readiness signoff and rollback drill
+- [ ] `850` Launch readiness signoff and rollback drill (PR #58 opened; CI infra blocker)
 
 ## Test Evidence
 
@@ -92,7 +92,26 @@ Last Updated: 2026-03-27
   - packet runner `scripts/test-step-840.sh` passed end-to-end
   - post-deploy smoke + rollback validation wrappers executed
 
+
+- ks-v2 PR #58 opened: https://github.com/Kriegspiel/ks-v2/pull/58
+- Head commit: `18ef2ca2fcc061058f4f123f5f0e93edec380f9f`
+- Slice-850 implementation landed on branch with artifacts:
+  - `docs/quality/step-800-slice-850.md`
+  - `docs/release/release-readiness-checklist.md`
+  - `docs/release/step-800-final-evidence-bundle.md`
+  - `scripts/test-step-850.sh` + release gate scripts
+  - `.github/workflows/release-ci.yml` (required checks: `release-regression`, `release-security-gates`, `release-smoke`, `rollback-drill`)
+- Local packet evidence recorded:
+  - release regression: PASS
+  - release security gates: PASS
+  - release smoke (3x consecutive): PASS
+  - rollback drill: PASS (`RollbackSeconds=41`)
+  - full packet runner `scripts/test-step-850.sh`: PASS
+- PR merge is pending because GitHub-hosted runners cannot pull `mongo:7` (`unauthorized: incorrect username or password`), failing multiple jobs before test execution.
+
 ## Blockers
+
+- Slice 850 merge blocked by CI infrastructure: Docker Hub pull for `mongo:7` fails with `unauthorized: incorrect username or password` on GitHub Actions runners (impacts baseline and release jobs).
 
 - Slice 850 pending: launch readiness signoff packet + rollback drill signoff artifacts not yet completed.
 - Carryover risk from slice 820: remove temporary `pip-audit --ignore-vuln CVE-2026-30922` once upstream dependency chain publishes patched compatible release.

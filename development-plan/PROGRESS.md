@@ -12,7 +12,7 @@ Overall Status: IN PROGRESS
 - [x] step-500 Core Game UI — DONE
 - [ ] step-600 Review and Player Features — IN PROGRESS (610-630 complete)
 - [x] step-700 Infra and Operations — DONE
-- [ ] step-800 Hardening and Launch Readiness — IN PROGRESS (810-830 complete)
+- [ ] step-800 Hardening and Launch Readiness — IN PROGRESS (810-840 merged; 850 in PR #58 pending CI infra)
 - [ ] step-900 Website and Content Track — NOT STARTED
 
 ## Active Work
@@ -24,7 +24,7 @@ Overall Status: IN PROGRESS
 - Step 400 completed through slice 460 with merge-gated evidence in ks-v2 PRs #28-#33 (DONE).
 - Step 600 packet expansion complete and ready for execution sequencing.
 - Step 700 packet expansion complete and ready for execution sequencing.
-- Step 800 slices 810-830 complete and merged (ks-v2 PRs #54, #55, #56); step remains IN PROGRESS for slices 840-850.
+- Step 800 slices 810-840 complete and merged (ks-v2 PRs #54, #55, #56, #57). Slice 850 is implemented in ks-v2 PR #58 with local passing evidence; merge blocked by CI Docker Hub auth failure on `mongo:7` pulls.
 - Step 900 packet expansion complete and ready for website/content execution sequencing (slices 910-960, including content source-of-truth and static-regeneration gates).
 
 ## Blockers
