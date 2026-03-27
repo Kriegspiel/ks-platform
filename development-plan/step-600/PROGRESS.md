@@ -7,7 +7,7 @@ Last Updated: 2026-03-27
 
 - [x] `610` Profile, history, and leaderboard API
 - [x] `620` Review/replay API and React review page
-- [ ] `630` React profile, history, leaderboard, settings pages
+- [x] `630` React profile, history, leaderboard, settings pages
 - [ ] `640` Direct join URL
 - [ ] `650` Player feature integration tests
 
@@ -41,10 +41,27 @@ Last Updated: 2026-03-27
   - `cd backend/src && uv run pytest tests -v` → 160 passed, 22 skipped, 1 warning
 - CI merge gates for PR #46: backend-quality ✅, frontend-quality ✅, ops-scripts-quality ✅
 
+
+### Slice 630 (completed)
+- ks-v2 PR: https://github.com/Kriegspiel/ks-v2/pull/51
+- Merge commit: `0843ddf00189522b655cb33b6417e7de337e279b`
+- Scope delivered:
+  - Added React pages/routes for `/user/:username`, `/user/:username/games`, `/leaderboard`, and auth-protected `/settings`.
+  - Wired `frontend/src/services/api.js` with `userApi.getProfile`, `getGameHistory`, `updateSettings`, `getLeaderboard` against slice-610/620 contracts.
+  - Implemented responsive tables/cards/forms plus empty/error/success UX and review/profile cross-linking.
+- Frontend checks:
+  - `cd frontend && npm run test -- --run Profile GameHistory Leaderboard Settings` → 12 passed, 0 skipped
+  - `cd frontend && npm run test -- --run --coverage --coverage.include=src/pages/Profile.jsx --coverage.include=src/pages/GameHistory.jsx --coverage.include=src/pages/Leaderboard.jsx --coverage.include=src/pages/Settings.jsx Profile GameHistory Leaderboard Settings` → 12 passed, 0 skipped; combined coverage 99.06% lines / 77.77% branches
+  - `cd frontend && npm run test -- --run api Profile GameHistory Leaderboard Settings` → 25 passed, 0 skipped
+  - `cd frontend && npm run test -- --run App` → 8 passed, 0 skipped
+  - `cd frontend && npm run lint` → pass
+  - `cd frontend && npm run build` → pass
+- CI merge gates for PR #51: backend-quality ✅, frontend-quality ✅, ops-scripts-quality ✅
+
 ## Blockers
 
 - Slice 620: no blockers.
-- Slice 630: no hard blockers; follow-on dependency is available (`/api/game/{gameId}/moves` replay contract now stable with `replay_fen`).
+- Slice 630: no blockers.
 
 ## Discovery Notes
 
@@ -55,5 +72,5 @@ Last Updated: 2026-03-27
 
 ## Handoff
 
-- Continue at Slice 630 using `step-600/630/README.md`, `IMPLEMENTATION.md`, and `TESTING.md`.
+- Continue at Slice 640 using `step-600/640/README.md`, `IMPLEMENTATION.md`, and `TESTING.md`.
 - Keep evidence logging in this file with explicit command outcomes and gate status.
