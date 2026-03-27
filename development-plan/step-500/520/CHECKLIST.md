@@ -1,5 +1,5 @@
 # Step 520 - Checklist
 
-- [ ] Implement scope
-- [ ] Run all listed tests
-- [ ] Record pass/fail/skip evidence in step progress
+- [x] Implement scope
+- [x] Run all listed tests
+- [x] Record pass/fail/skip evidence in step progress
