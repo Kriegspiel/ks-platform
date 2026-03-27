@@ -1,11 +1,11 @@
 # Step 800 Progress
 
-Status: NOT STARTED
-Last Updated: 2026-03-25
+Status: IN PROGRESS
+Last Updated: 2026-03-27
 
 ## Slice Checklist
 
-- [ ] `810` Regression gate hardening
+- [x] `810` Regression gate hardening
 - [ ] `820` Security verification and abuse-path coverage
 - [ ] `830` Failure and recovery behavior certification
 - [ ] `840` Documentation and runbook reconciliation
@@ -13,12 +13,24 @@ Last Updated: 2026-03-25
 
 ## Test Evidence
 
-- Pending implementation execution.
-- Slice-level testing requirements are pre-defined with exact commands, thresholds/coverage gates, CI merge gates, deterministic fixtures/seeding, regression matrixes, skip policy, and post-deploy smoke/rollback checks.
+- ks-v2 PR #54 merged: https://github.com/Kriegspiel/ks-v2/pull/54
+- Merge commit: `9a2e5d309316e5f4ee957e412db833653323eea1`
+- CI required checks passed on PR #54:
+  - `lint`
+  - `backend-regression`
+  - `frontend-regression`
+  - `integration-smoke`
+  - `ops-scripts-quality`
+- Packet lanes executed locally and in CI:
+  - backend regression: `167 passed, 22 skipped` (coverage gate >=85 passed)
+  - frontend regression: `77 passed` (coverage thresholds passed)
+  - integration smoke: `22 passed, 167 deselected`
+  - packet runner `scripts/test-step-810.sh` passed end-to-end
+  - post-deploy smoke + rollback validation wrappers executed
 
 ## Blockers
 
-- Depends on completion quality and evidence from Step 700 infra + operations packet.
+- None for 810 closure.
 
 ## Discovery Notes
 

@@ -12,7 +12,7 @@ Overall Status: IN PROGRESS
 - [x] step-500 Core Game UI — DONE
 - [ ] step-600 Review and Player Features — IN PROGRESS (610-630 complete)
 - [x] step-700 Infra and Operations — DONE
-- [ ] step-800 Hardening and Launch Readiness — NOT STARTED
+- [ ] step-800 Hardening and Launch Readiness — IN PROGRESS (810 complete)
 - [ ] step-900 Website and Content Track — NOT STARTED
 
 ## Active Work
@@ -24,7 +24,7 @@ Overall Status: IN PROGRESS
 - Step 400 completed through slice 460 with merge-gated evidence in ks-v2 PRs #28-#33 (DONE).
 - Step 600 packet expansion complete and ready for execution sequencing.
 - Step 700 packet expansion complete and ready for execution sequencing.
-- Step 800 packet expansion complete and ready for hardening/launch execution sequencing.
+- Step 800 slice 810 complete and merged (ks-v2 PR #54); step remains IN PROGRESS for slices 820-850.
 - Step 900 packet expansion complete and ready for website/content execution sequencing (slices 910-960, including content source-of-truth and static-regeneration gates).
 
 ## Blockers
