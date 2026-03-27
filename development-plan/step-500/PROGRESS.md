@@ -1,13 +1,13 @@
 # Step 500 Progress
 
 Status: IN PROGRESS
-Last Updated: 2026-03-26
+Last Updated: 2026-03-27
 
 ## Slice Checklist
 
 - [x] `510` Chess board component and visual-state primitives
 - [x] `520` Game page polling loop + gameplay actions
-- [ ] `530` Phantom tray + client persistence
+- [x] `530` Phantom tray + client persistence
 - [ ] `540` Promotion modal + interaction polish
 - [ ] `550` Home/rules/navigation polish
 
@@ -43,13 +43,23 @@ Last Updated: 2026-03-26
   - Additional impacted suite: `cd frontend && npm run test -- --run App Lobby Game api` → PASS (28 passed, 0 skipped)
 - Evidence log: `ks-v2/.evidence/step500-slice520-frontend-gates.txt`
 
+### Slice 530 (implemented in `ks-v2` PR #42)
+- PR: https://github.com/Kriegspiel/ks-v2/pull/42
+- Merge commit (`ks-v2/main`): `09f0470`
+- Automated checks:
+  - `cd frontend && npm run test -- --run usePhantoms` → PASS (5 passed, 0 skipped)
+  - `cd frontend && npm run test -- --run PhantomTray` → PASS (2 passed, 0 skipped)
+  - `cd frontend && npm run test -- --run GamePage PhantomTray usePhantoms` → PASS (12 passed, 0 skipped)
+  - `cd frontend && npm run lint` → PASS
+  - `cd frontend && npm run test:e2e -- --grep "phantom persistence"` → BLOCKED (`Missing script: test:e2e`)
+
 ## Blockers
 
 - Host runtime on `rpi-server-02` uses Node 18, while frontend toolchain (Vite 7 / react-router 7) expects Node >=20.19. This blocks Step 510 runtime smoke and may impact interactive validation for Step 520.
-- Slice-520 packet e2e gate remains blocked because `frontend/package.json` has no `test:e2e` script.
+- Slice-520/530 packet e2e gates remain blocked because `frontend/package.json` has no `test:e2e` script.
 
 ## Handoff
 
-- Next execution order: `530 -> 540 -> 550`.
+- Next execution order: `540 -> 550`.
 - Carry forward UI-state contracts from 510 (`orientation`, `highlightedSquares`, `phantomSquares`, `disabled`, square click algebraic callback).
 - Carry forward 520 contracts: game-state poll cadence/cleanup, possible-actions gating, and action re-poll behavior.

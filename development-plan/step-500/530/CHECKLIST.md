@@ -1,5 +1,5 @@
 # Step 530 - Checklist
 
-- [ ] Implement scope
-- [ ] Run all listed tests
-- [ ] Record outcomes and blockers in step progress
+- [x] Implement scope
+- [x] Run all listed tests
+- [x] Record outcomes and blockers in step progress
