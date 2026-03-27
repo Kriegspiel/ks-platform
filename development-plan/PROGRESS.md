@@ -13,6 +13,7 @@ Overall Status: IN PROGRESS
 - [ ] step-600 Review and Player Features — NOT STARTED
 - [x] step-700 Infra and Operations — DONE
 - [ ] step-800 Hardening and Launch Readiness — NOT STARTED
+- [ ] step-900 Website and Content Track — NOT STARTED
 
 ## Active Work
 
@@ -23,6 +24,7 @@ Overall Status: IN PROGRESS
 - Step 600 packet expansion complete and ready for execution sequencing.
 - Step 700 packet expansion complete and ready for execution sequencing.
 - Step 800 packet expansion complete and ready for hardening/launch execution sequencing.
+- Step 900 packet expansion complete and ready for website/content execution sequencing.
 
 ## Blockers
 
@@ -41,3 +43,4 @@ Overall Status: IN PROGRESS
 - Step 600 now has dedicated slice packets for 610, 620, 630, 640, and 650 under development-plan/step-600/.
 - Step 700 now has dedicated slice packets for 710, 720, 730, 740, and 750 under development-plan/step-700/.
 - Step 800 now has dedicated slice packets for 810, 820, 830, 840, and 850 under development-plan/step-800/.
+- Step 900 now has dedicated slice packets for 910, 920, 930, 940, and 950 under development-plan/step-900/.

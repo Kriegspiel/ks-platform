@@ -33,8 +33,9 @@ These override the original spec docs where they conflict:
 | `step-600` | Review and Player Features | 5 | Profile, history, leaderboard, settings, game review | `step-500` |
 | `step-700` | Infra and Operations | 5 | Docker finalize, NGINX, CI, backup, logging | `step-600` |
 | `step-800` | Hardening and Launch Readiness | 5 | Regression, security, error paths, docs, launch | `step-700` |
+| `step-900` | Website and Content Track | 5 | Public web surfaces, content pipeline, SEO/analytics/legal, preview/deploy gates | `step-800` |
 
-**Total: 41 slices**
+**Total: 46 slices**
 
 ## Slice Sizing
 
@@ -97,3 +98,8 @@ Each slice is designed to be completable in a single ~$20 agent session (~15-20 
 - [step-800/830](./step-800/830/README.md) expands slice `830` from `step-800` into a dedicated implementation and automated-testing packet.
 - [step-800/840](./step-800/840/README.md) expands slice `840` from `step-800` into a dedicated implementation and automated-testing packet.
 - [step-800/850](./step-800/850/README.md) expands slice `850` from `step-800` into a dedicated implementation and automated-testing packet.
+- [step-900/910](./step-900/910/README.md) expands slice `910` from `step-900` into a dedicated implementation and automated-testing packet.
+- [step-900/920](./step-900/920/README.md) expands slice `920` from `step-900` into a dedicated implementation and automated-testing packet.
+- [step-900/930](./step-900/930/README.md) expands slice `930` from `step-900` into a dedicated implementation and automated-testing packet.
+- [step-900/940](./step-900/940/README.md) expands slice `940` from `step-900` into a dedicated implementation and automated-testing packet.
+- [step-900/950](./step-900/950/README.md) expands slice `950` from `step-900` into a dedicated implementation and automated-testing packet.
