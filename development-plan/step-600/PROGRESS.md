@@ -1,6 +1,6 @@
 # Step 600 Progress
 
-Status: IN PROGRESS
+Status: DONE
 Last Updated: 2026-03-27
 
 ## Slice Checklist
@@ -8,8 +8,8 @@ Last Updated: 2026-03-27
 - [x] `610` Profile, history, and leaderboard API
 - [x] `620` Review/replay API and React review page
 - [x] `630` React profile, history, leaderboard, settings pages
-- [ ] `640` Direct join URL
-- [ ] `650` Player feature integration tests
+- [x] `640` Direct join URL
+- [x] `650` Player feature integration tests
 
 ## Test Evidence
 
@@ -58,19 +58,44 @@ Last Updated: 2026-03-27
   - `cd frontend && npm run build` → pass
 - CI merge gates for PR #51: backend-quality ✅, frontend-quality ✅, ops-scripts-quality ✅
 
+### Slice 640 (completed)
+- ks-v2 PR: https://github.com/Kriegspiel/ks-v2/pull/52
+- Merge commit: `e1825842cc0e1fef4f04ea8ed3bd03e68b9b6829`
+- Scope delivered:
+  - Added `/join/:gameCode` route and join page with one-shot auto-join behavior.
+  - Unauthenticated joins redirect to login with preserved return path.
+  - Invalid/full join responses render actionable error with lobby recovery link.
+  - Lobby now surfaces shareable join URL after game creation.
+- Validation checks:
+  - `cd frontend && npm run test -- --run Join Lobby` → 11 passed
+  - `cd frontend && npm run test -- --coverage --coverage.include=src/pages/JoinPage.jsx --coverage.include=src/pages/LobbyPage.jsx --run Join Lobby` → pass (`JoinPage.jsx` 96.92% lines)
+  - `cd frontend && npm run lint` → pass
+  - `cd backend/src && ../.venv/bin/pytest tests/test_game_router.py tests/test_game_service.py -k join -v` → 4 passed
+- CI merge gates for PR #52: backend-quality ✅, frontend-quality ✅, ops-scripts-quality ✅
+
+### Slice 650 (completed)
+- ks-v2 PR: https://github.com/Kriegspiel/ks-v2/pull/53
+- Merge commit: `7e6616c071f1b70d60c47989f0ebea3064f0f095`
+- Scope delivered:
+  - Expanded `tests/test_player_features.py` to 9 deterministic integration tests covering profile/history/leaderboard/settings/transcript flows and auth boundary.
+  - Added deterministic fake fixtures for users and archives with stable ordering and pagination assertions.
+- Validation checks:
+  - `cd backend/src && ../.venv/bin/pytest tests/test_player_features.py -v` → 9 passed
+  - `cd backend/src && ../.venv/bin/pytest tests/test_player_features.py -q --maxfail=1` → 9 passed
+  - `cd backend/src && ../.venv/bin/pytest tests/test_player_features.py --cov=app --cov-report=term-missing` → 9 passed
+  - `cd backend/src && ../.venv/bin/pytest -q --maxfail=1` → 167 passed, 22 skipped, 1 warning
+- CI merge gates for PR #53: backend-quality ✅, frontend-quality ✅, ops-scripts-quality ✅
+
 ## Blockers
 
-- Slice 620: no blockers.
-- Slice 630: no blockers.
+- Step 600: no blockers.
 
 ## Discovery Notes
 
-- Expanded Step 600 from high-level README into a full packet: `CHECKLIST.md`, `HANDOFF.md`, and scope-based slice folders `610`-`650`.
-- Standardized QA bar across slices with explicit CI merge gates and rollback-ready procedures.
-- Added deterministic fixture requirements to prevent flaky ranking/pagination/replay tests.
-- Sequenced work so API contract stability (`610`) lands before dependent UI (`620`-`640`) and final integration suite (`650`).
+- Packet command references required minor path normalization (`tests/test_game_routes.py` no longer exists; join coverage now in `test_game_router.py` and `test_game_service.py`).
+- Packet wording for per-page clamp conflicts with route contract (`le=100` returns `422` pre-service); tests now codify observed API boundary behavior.
 
 ## Handoff
 
-- Continue at Slice 640 using `step-600/640/README.md`, `IMPLEMENTATION.md`, and `TESTING.md`.
-- Keep evidence logging in this file with explicit command outcomes and gate status.
+- Step 600 complete.
+- Continue execution at Step 800 Slice 810.
