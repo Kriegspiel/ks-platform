@@ -1,8 +1,8 @@
 # Slice 620 Checklist
 
-- [ ] Review page route wired
-- [ ] Move transcript consumed and rendered by ply
-- [ ] Controls + keyboard navigation working
-- [ ] Perspective filtering behaves correctly
-- [ ] TESTING.md commands executed with thresholds met
-- [ ] Results logged in `step-600/PROGRESS.md`
+- [x] Review page route wired
+- [x] Move transcript consumed and rendered by ply
+- [x] Controls + keyboard navigation working
+- [x] Perspective filtering behaves correctly
+- [x] TESTING.md commands executed with thresholds met
+- [x] Results logged in `step-600/PROGRESS.md`
