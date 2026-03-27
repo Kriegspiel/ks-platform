@@ -94,7 +94,7 @@ Last Updated: 2026-03-27
 
 
 - ks-v2 PR #58 opened: https://github.com/Kriegspiel/ks-v2/pull/58
-- Head commit: `18ef2ca2fcc061058f4f123f5f0e93edec380f9f`
+- Head commit: `18ef2ca561cdd124009cd82ecb4a70d206a011f4`
 - Slice-850 implementation landed on branch with artifacts:
   - `docs/quality/step-800-slice-850.md`
   - `docs/release/release-readiness-checklist.md`
