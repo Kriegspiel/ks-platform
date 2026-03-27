@@ -1,11 +1,11 @@
 # Step 600 Progress
 
-Status: NOT STARTED
-Last Updated: 2026-03-25
+Status: IN PROGRESS
+Last Updated: 2026-03-27
 
 ## Slice Checklist
 
-- [ ] `610` Profile, history, and leaderboard API
+- [x] `610` Profile, history, and leaderboard API
 - [ ] `620` Review/replay API and React review page
 - [ ] `630` React profile, history, leaderboard, settings pages
 - [ ] `640` Direct join URL
@@ -13,12 +13,23 @@ Last Updated: 2026-03-25
 
 ## Test Evidence
 
-- Pending implementation execution.
-- Slice-level heavy automated testing criteria now defined in each `TESTING.md` (commands, thresholds, merge gates, deterministic fixtures, regression matrix, skip policy, smoke/rollback).
+### Slice 610 (completed)
+- ks-v2 PR: https://github.com/Kriegspiel/ks-v2/pull/45
+- Merge commit: `24cb71e2894e32e3a965a2186e05d33c153d0122`
+- `cd backend/src && ../.venv/bin/pytest tests/test_user_routes.py -v` → 1 passed
+- `cd backend/src && ../.venv/bin/pytest tests/test_user_service.py -v` → 8 passed
+- `cd backend/src && ../.venv/bin/pytest tests/test_player_features.py -k "profile or leaderboard or settings" -v` → 2 passed
+- `cd backend/src && ../.venv/bin/pytest -q --maxfail=1 --disable-warnings` → 160 passed, 22 skipped, 1 warning
+- `cd backend/src && ../.venv/bin/ruff check app tests` → pass
+- Smoke check: `uvicorn app.main:app` + `curl /api/health` → HTTP 200 (`{"status":"ok","db":"connected"}`)
+
+### Remaining slices
+- 620/630/640/650 pending.
 
 ## Blockers
 
-- Depends on `step-500` implementation completion and stable route contracts.
+- No blockers for Slice 610 closure.
+- Next blocker risk for Slice 620: confirm replay UI contract alignment with `/api/game/{gameId}/moves` payload during frontend implementation.
 
 ## Discovery Notes
 
@@ -29,5 +40,5 @@ Last Updated: 2026-03-25
 
 ## Handoff
 
-- Begin at `step-600/CHECKLIST.md`, then execute each slice in order.
-- Record command outputs and PASS/FAIL per slice as work proceeds.
+- Continue at Slice 620 using `step-600/620/README.md`, `IMPLEMENTATION.md`, and `TESTING.md`.
+- Keep evidence logging in this file with explicit command outcomes and gate status.
