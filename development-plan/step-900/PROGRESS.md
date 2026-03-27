@@ -1,11 +1,11 @@
 # Step 900 Progress
 
-Status: NOT STARTED
+Status: IN PROGRESS (910 COMPLETE)
 Last Updated: 2026-03-27
 
 ## Slice Checklist
 
-- [ ] `910` Information architecture, routing, and content contracts
+- [x] `910` Information architecture, routing, and content contracts
 - [ ] `920` Landing/home + leaderboard experience
 - [ ] `930` Blog + changelog system and editorial pipeline
 - [ ] `940` Rules, trust surfaces, and discoverability (SEO/analytics/legal)
@@ -14,12 +14,15 @@ Last Updated: 2026-03-27
 
 ## Test Evidence
 
-- Pending implementation execution.
-- Slice-level testing requirements include exact commands, CI gate mapping, accessibility checks, smoke checks, visual regression checks, broken-link validation, static-regeneration verification, and rollback verification.
+- Slice 910 execution PASS (ks-home PR #16, content PR #3).
+- ks-home gates PASS: npm ci, npm run lint, npm run test -- --runInBand --watch=false, npm run routes:validate, npm run content:schema:check, npm run content:source-contract:check, npm run build.
+- Coverage evidence from slice 910 run: lines 98.48%, branches 81.81%.
+- No CI checks configured on website repos yet; merge completed after local gate pass evidence.
 
 ## Blockers
 
-- Depends on completion quality from Step 800 hardening and launch-readiness contracts.
+- None for slice 910.
+- Slice 920 can begin.
 
 ## Discovery Notes
 
