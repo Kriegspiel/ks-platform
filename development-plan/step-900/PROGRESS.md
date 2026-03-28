@@ -1,7 +1,7 @@
 # Step 900 Progress
 
-Status: IN PROGRESS (910 + 920 + 930 + 940 + 950 COMPLETE)
-Last Updated: 2026-03-27
+Status: DONE
+Last Updated: 2026-03-28
 
 ## Slice Checklist
 
@@ -10,7 +10,7 @@ Last Updated: 2026-03-27
 - [x] `930` Blog + changelog system and editorial pipeline
 - [x] `940` Rules, trust surfaces, and discoverability (SEO/analytics/legal)
 - [x] `950` Preview, deploy, regression, and launch readiness for website track
-- [ ] `960` Content repository organization and operational hygiene
+- [x] `960` Content repository organization and operational hygiene
 
 ## Test Evidence
 
@@ -51,12 +51,26 @@ Last Updated: 2026-03-27
 - Rollback drill PASS using `./scripts/deploy/rollback.sh --to previous` against synthetic artifact links.
 - Smoke script verified (`BASE_URL=https://example.com ./scripts/deploy/smoke.sh --routes "/"`).
 
+- Slice 960 execution PASS (content PR #10).
+- Content gates PASS for slice 960:
+  - `npm ci`
+  - `npm run lint:markdown`
+  - `npm run lint:links`
+  - `npm run validate:frontmatter`
+  - `npm run validate:content-policy`
+  - `npm run build:content-index`
+  - `cd /home/fil/dev/kriegspiel/ks-home && npm ci`
+  - `npm run content:trigger:simulate -- --from=../content --verify-static-regen`
+  - `npm run sitemap:generate -- --check`
+  - `npm run feeds:generate -- --check`
+  - `npm run build`
+  - `npm run test:smoke -- --routes=/,/blog,/changelog,/rules`
+
 ## Blockers
 
 - None for slice 920.
 - None for slice 930.
 - None for slice 940.
-- No technical blocker for slice 960; launch cutover still depends on Fil-approved Cloudflare tunnel + DNS mapping.
 
 ## Discovery Notes
 
@@ -68,6 +82,5 @@ Last Updated: 2026-03-27
 
 ## Handoff
 
-- Start at `step-900/CHECKLIST.md`.
-- Execute slices in order `910` → `960` unless a dependency exception is documented and approved.
-- Record command outputs and PASS/FAIL evidence as each slice completes.
+- Step 900 complete through slice 960.
+- Remaining launch work is outside website/content implementation scope and depends on Fil-approved Cloudflare tunnel + DNS mapping plus Step 800 slice 850 CI-infra unblock.

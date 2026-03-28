@@ -1,6 +1,6 @@
 # Development Plan Progress
 
-Last Updated: 2026-03-27
+Last Updated: 2026-03-28
 Overall Status: IN PROGRESS
 
 ## Step Rollup
@@ -10,28 +10,25 @@ Overall Status: IN PROGRESS
 - [x] step-300 Lobby and Game Lifecycle REST — DONE
 - [x] step-400 Real-Time Gameplay Core — DONE
 - [x] step-500 Core Game UI — DONE
-- [ ] step-600 Review and Player Features — IN PROGRESS (610-630 complete)
+- [x] step-600 Review and Player Features — DONE
 - [x] step-700 Infra and Operations — DONE
 - [ ] step-800 Hardening and Launch Readiness — IN PROGRESS (810-840 merged; 850 in PR #58 pending CI infra)
-- [ ] step-900 Website and Content Track — IN PROGRESS (910-950 complete)
+- [x] step-900 Website and Content Track — DONE
 
 ## Active Work
 
-- Step 600 execution in progress through slice 630 with merged ks-v2 PRs #45, #46, #51.
 - Step 500 execution complete through slice 550 with merged ks-v2 PRs #40-#44 (DONE).
 - Step 700 execution complete through slice 750 with merged ks-v2 PRs #35-#39 (DONE).
 - Step 300 slices 310-350 implemented and merge-gated (DONE).
 - Step 400 completed through slice 460 with merge-gated evidence in ks-v2 PRs #28-#33 (DONE).
-- Step 600 packet expansion complete and ready for execution sequencing.
-- Step 700 packet expansion complete and ready for execution sequencing.
 - Step 800 slices 810-840 complete and merged (ks-v2 PRs #54, #55, #56, #57). Slice 850 is implemented in ks-v2 PR #58 with local passing evidence; merge blocked by CI Docker Hub auth failure on `mongo:7` pulls.
-- Step 900 packet expansion complete and ready for website/content execution sequencing (slices 910-960, including content source-of-truth and static-regeneration gates).
 - Step 900 slices 910-950 complete and merged: content PRs #3-#9 and ks-home PRs #16-#22 (IA/routes/content-contract, public-route experience, editorial pipeline, trust surfaces, preview/deploy gates, rollback runbook, and CI follow-up fixes).
+- Step 900 slice 960 complete and merged: content PR #10 established repo organization docs, lifecycle and filename policy checks, CODEOWNERS routing, and blocking CI hygiene gates.
 
 
 ## Blockers
 
-- None yet.
+- Step 800 slice 850 remains blocked by GitHub Actions Docker Hub auth failures pulling `mongo:7` on hosted runners.
 
 ## Notes
 
