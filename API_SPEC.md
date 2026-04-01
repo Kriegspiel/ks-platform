@@ -40,6 +40,46 @@ Sets session cookie.
 
 ---
 
+### `POST /auth/bots/register`
+
+Register a bot account and mint a bot API token. Requires header `X-Bot-Registration-Key`.
+
+**Request:**
+```json
+{
+  "username": "randobot",
+  "display_name": "Random Bot",
+  "owner_email": "bots@example.com",
+  "description": "Plays random legal-looking moves",
+  "listed": true
+}
+```
+
+**Validation:**
+- `username`: 3-20 chars, `[a-zA-Z0-9_]`, unique (case-insensitive)
+- `display_name`: 3-40 chars
+- `owner_email`: required, valid email format; stored as the bot owner contact address
+- `description`: optional, max 280 chars
+- `listed`: optional; omitted values are auto-derived by the backend for test/e2e bots
+
+**Response `201`:**
+```json
+{
+  "bot_id": "664a1b...",
+  "username": "randobot",
+  "display_name": "Random Bot",
+  "owner_email": "bots@example.com",
+  "api_token": "ksbot_abcd1234.secret",
+  "message": "Bot registered. Save this token now; it will not be shown again."
+}
+```
+
+`owner_email` is stored on the bot profile for operator contact and is not included in public bot listings.
+
+**Errors:** `401` invalid registration key, `409` username taken, `422` validation failure
+
+---
+
 ### `POST /auth/login`
 
 **Request:**
