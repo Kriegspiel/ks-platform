@@ -137,6 +137,10 @@ If bot join behavior changes, document:
 
 ## Deployment rules
 
+- by default, shared-repo changes should land through a branch plus PR flow
+- direct pushes to `main` should be treated as exceptions for:
+  - explicit user instruction
+  - urgent operational repair
 - user-facing changes in `ks-web-app` should bump the frontend version
 - user-facing/API changes in `ks-backend` should bump backend version
 - `ks-home` has its own independent version

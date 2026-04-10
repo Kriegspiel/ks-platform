@@ -108,7 +108,7 @@ Recent examples:
 
 Reference script:
 
-- [`ks-home/scripts/refresh-static-site.sh`](/home/fil/dev/kriegspiel/ks-home/scripts/refresh-static-site.sh)
+- `ks-home/scripts/refresh-static-site.sh`
 
 What it does:
 

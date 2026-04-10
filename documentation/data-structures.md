@@ -33,7 +33,7 @@ For the exhaustive file/module inventory, see [`module-index.md`](./module-index
 
 ## Live Game Persistence
 
-The canonical live-game record is defined in [`ks-backend/src/app/models/game.py`](/home/fil/dev/kriegspiel/ks-backend/src/app/models/game.py) as `GameDocument`.
+The canonical live-game record is defined in `ks-backend/src/app/models/game.py` as `GameDocument`.
 
 Important fields:
 
@@ -115,7 +115,7 @@ The `ks-game` repo provides the engine-level types used by the backend.
 
 ### `QuestionAnnouncement`
 
-Defined in [`ks-game/kriegspiel/move.py`](/home/fil/dev/kriegspiel/ks-game/kriegspiel/move.py).
+Defined in `ks-game/kriegspiel/move.py`.
 
 Represents what the player is asking:
 
@@ -222,7 +222,7 @@ Important derived rules:
 
 ## User and Rating Shapes
 
-Defined in [`ks-backend/src/app/models/user.py`](/home/fil/dev/kriegspiel/ks-backend/src/app/models/user.py).
+Defined in `ks-backend/src/app/models/user.py`.
 
 ### `EloRatingTrack`
 
@@ -278,7 +278,7 @@ Public profile fields used by the frontend:
 
 ## Bot Data
 
-Bot-specific models live in [`ks-backend/src/app/models/bot.py`](/home/fil/dev/kriegspiel/ks-backend/src/app/models/bot.py).
+Bot-specific models live in `ks-backend/src/app/models/bot.py`.
 
 ### `BotProfile`
 
