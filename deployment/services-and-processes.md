@@ -16,7 +16,7 @@ Observed production process:
 
 - service: `ks-backend.service`
 - repo: `ks-backend`
-- entrypoint: `ks-backend/src/app/main.py`
+- entrypoint: `.../kriegspiel/ks-backend/src/app/main.py`
 
 Responsibilities:
 
@@ -59,7 +59,7 @@ Refresh automation:
 
 - service: `ks-home-refresh.service`
 - timer: `ks-home-refresh.timer`
-- script: `ks-home/scripts/refresh-static-site.sh`
+- script: `.../kriegspiel/ks-home/scripts/refresh-static-site.sh`
 
 Responsibilities:
 
@@ -69,7 +69,7 @@ Responsibilities:
 
 Operational note:
 
-- the refresh script uses detached worktrees in `.site-refresh`
+- the refresh script uses detached worktrees in `.../kriegspiel/.site-refresh/`
 
 ## Bot services
 
@@ -78,25 +78,25 @@ All main bots run as single Python processes under systemd.
 ### `bot-random`
 
 - service: `kriegspiel-random-bot.service`
-- file: `bot-random/deploy/kriegspiel-random-bot.service`
+- file: `.../kriegspiel/bot-random/deploy/kriegspiel-random-bot.service`
 - entrypoint: `bot.py --poll-seconds 2`
 
 ### `bot-random-any`
 
 - service: `kriegspiel-random-any-bot.service`
-- file: `bot-random-any/deploy/kriegspiel-random-any-bot.service`
+- file: `.../kriegspiel/bot-random-any/deploy/kriegspiel-random-any-bot.service`
 - entrypoint: `bot.py --poll-seconds 2`
 
 ### `bot-gpt-nano`
 
 - service: `kriegspiel-gpt-nano-bot.service`
-- file: `bot-gpt-nano/deploy/kriegspiel-gpt-nano-bot.service`
+- file: `.../kriegspiel/bot-gpt-nano/deploy/kriegspiel-gpt-nano-bot.service`
 - entrypoint: `bot.py --poll-seconds 2`
 
 ### `bot-haiku`
 
 - service: `kriegspiel-haiku-bot.service`
-- file: `bot-haiku/deploy/kriegspiel-haiku-bot.service`
+- file: `.../kriegspiel/bot-haiku/deploy/kriegspiel-haiku-bot.service`
 - entrypoint: `bot.py --poll-seconds 2`
 
 ## Background loops inside processes
@@ -129,9 +129,9 @@ They are source repos consumed by:
 
 ## Workspace-only directories that matter operationally
 
-- `.site-refresh`
+- `.../kriegspiel/.site-refresh/`
   - detached worktrees used by the static refresh script
-- `_tmp`
+- `.../kriegspiel/_tmp/`
   - holding area for non-active repos/worktrees
 
 These are local machine concerns, not org repos.
