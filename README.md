@@ -42,10 +42,10 @@ This repository does not ship production runtime code. Its job is to document:
 
 Outside this repo, the current local workspace typically also contains:
 
-- `/home/fil/dev/kriegspiel/.site-refresh`: detached worktrees used by the hourly static-site refresh job
-- `/home/fil/dev/kriegspiel/_tmp`: local holding area for non-active repos/worktrees
-- `/home/fil/dev/kriegspiel/node_modules`: top-level Codex CLI dependency install
-- `/home/fil/dev/kriegspiel/localsetup`: local machine notes such as Cloudflare tunnel setup
+- `.../kriegspiel/.site-refresh/`: detached worktrees used by the hourly static-site refresh job
+- `.../kriegspiel/_tmp/`: local holding area for non-active repos/worktrees
+- `.../kriegspiel/node_modules/`: top-level Codex CLI dependency install
+- `.../kriegspiel/localsetup/`: local machine notes such as Cloudflare tunnel setup
 
 Those are workspace details, not organization repos.
 
@@ -57,4 +57,4 @@ Run:
 python scripts/generate_inventory.py
 ```
 
-That rewrites [`documentation/module-index.md`](./documentation/module-index.md) from the live checked-out repos under `/home/fil/dev/kriegspiel`.
+That rewrites [`documentation/module-index.md`](./documentation/module-index.md) from the checked-out active repos under `.../kriegspiel/`.
