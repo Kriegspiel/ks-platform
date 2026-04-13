@@ -24,7 +24,7 @@ For the exhaustive file/module inventory, see [`module-index.md`](./module-index
 ### `user_id`
 
 - Mongo `_id` for users.
-- Usually embedded into `white_player.id` / `black_player.id` inside games.
+- Usually embedded into `white.user_id` / `black.user_id` inside games.
 
 ### `session_id`
 
@@ -45,15 +45,18 @@ Important fields:
   - `completed`
 - `rule_variant`
   - currently `berkeley`
-  - or `berkeley+any`
-- `white_player`
-- `black_player`
+  - or `berkeley_any`
+- `creator_color`
+- `opponent_type`
+- `selected_bot_id`
+- `white`
+- `black`
 - `engine_state`
 - `time_control`
 - `result`
 - `created_at`
 - `updated_at`
-- `completed_at`
+- `expires_at`
 
 ### `engine_state`
 
@@ -77,11 +80,10 @@ at the root of the game document.
 
 `PlayerEmbed` keeps the per-side public snapshot that belongs inside a game document:
 
-- `id`
+- `user_id`
 - `username`
-- `display_name`
-- `is_bot`
-- color assignment / player role context
+- `connected`
+- `role`
 
 This lets a game stay readable even if the user profile later changes.
 
@@ -103,11 +105,17 @@ Important normalized fields in archives:
 - player identities
 - `rule_variant`
 - `result`
-- `completed_at`
+- `updated_at`
 - normalized `rating_snapshot`
 - transcript-ready move/replay data
 
 The archive rating snapshots were globally recalculated, so the backend no longer relies on older fallback shapes.
+
+### Code retention rule
+
+- live active games hold their `game_code`
+- completed archived games retain their `game_code` permanently
+- deleted waiting games do not retain their `game_code`
 
 ## Engine and Referee Objects
 
@@ -175,7 +183,6 @@ The engine-owned scoresheet structure from which the backend builds:
 
 Important properties:
 
-- `game_code`
 - `state`
 - `your_color`
 - `your_fen`
@@ -218,6 +225,7 @@ The lobby uses:
 Important derived rules:
 
 - waiting games are joinable via `game_code`
+- waiting games expire after 10 minutes if unjoined
 - active games shown in `mine` are driven by backend ownership/visibility
 
 ## User and Rating Shapes

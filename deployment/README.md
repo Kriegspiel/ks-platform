@@ -13,6 +13,7 @@ This folder documents how the Kriegspiel.org system is run and orchestrated.
 - bot services
   - `bot-random`
   - `bot-random-any`
+  - `bot-simple-heuristics`
   - `bot-gpt-nano`
   - `bot-haiku`
 

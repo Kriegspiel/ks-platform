@@ -17,6 +17,7 @@ Files:
 - [`ks-game.md`](./ks-game.md)
 - [`bot-random.md`](./bot-random.md)
 - [`bot-random-any.md`](./bot-random-any.md)
+- [`bot-simple-heuristics.md`](./bot-simple-heuristics.md)
 - [`bot-gpt-nano.md`](./bot-gpt-nano.md)
 - [`bot-haiku.md`](./bot-haiku.md)
 - [`ks-platform.md`](./ks-platform.md)

@@ -49,6 +49,7 @@ Important rules:
 - public joining is code-based
 - browser URLs should remain code-based
 - direct selected-bot games are created by the human, not by bots joining human waiting games
+- waiting games expire after 10 minutes if nobody joins
 
 ## 3. Active Game Play Flow
 
@@ -145,6 +146,7 @@ Repos involved:
 
 - `bot-random`
 - `bot-random-any`
+- `bot-simple-heuristics`
 - `bot-gpt-nano`
 - `bot-haiku`
 - `ks-backend`
@@ -167,6 +169,11 @@ Differences:
   - random move selection
 - `randobotany`
   - asks `any pawn captures?` before random moves
+- `simpleheuristics`
+  - recaptures on the last capture square when possible
+  - prefers queen promotion
+  - otherwise picks `ask-any` or a piece using geometric weights, then tries that piece's moves from longest to shortest
+  - auto-creates waiting games and allows up to 5 active games
 - `gptnano`
   - OpenAI model loop
   - per-game conversation state

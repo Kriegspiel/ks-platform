@@ -76,7 +76,7 @@ Important:
 
 Repo:
 
-- one of `bot-random`, `bot-random-any`, `bot-gpt-nano`, `bot-haiku`
+- one of `bot-random`, `bot-random-any`, `bot-simple-heuristics`, `bot-gpt-nano`, `bot-haiku`
 
 Checklist:
 

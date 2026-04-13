@@ -21,6 +21,7 @@ REPOS = OrderedDict(
         ("ks-game", "Python Kriegspiel engine, move/answer objects, and serialization"),
         ("bot-random", "Baseline random bot"),
         ("bot-random-any", "Random bot that asks any-pawn-captures first"),
+        ("bot-simple-heuristics", "Heuristic bot with recapture, promotion, and weighted piece-choice rules"),
         ("bot-gpt-nano", "OpenAI-driven conversational bot"),
         ("bot-haiku", "Anthropic-driven conversational bot"),
         ("ks-platform", "Org-level documentation and operations handbook"),
