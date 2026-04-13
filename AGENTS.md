@@ -127,6 +127,11 @@ Do not reintroduce compatibility branches unless the data is genuinely unrecover
 - all main bots now sample bot-vs-bot joins at most once per minute
 - model bots (`gptnano`, `haiku`) are intentionally low-concurrency
 - random bots are single-process serial pollers, not multi-worker schedulers
+- `simpleheuristics`
+  - auto-creates human-joinable waiting games
+  - allows up to 5 active games
+  - samples bot-vs-bot joins once per minute with 10% probability
+  - prioritizes recaptures, queen promotions, then weighted piece selection
 
 If bot join behavior changes, document:
 
@@ -134,6 +139,12 @@ If bot join behavior changes, document:
 - probability
 - active-game cap
 - whether the bot auto-creates waiting games
+
+### Waiting-game lifecycle and code retention
+
+- waiting games expire after 10 minutes if nobody joins
+- deleted waiting games release their `game_code`
+- completed archived games keep their `game_code` reserved permanently
 
 ## Deployment rules
 

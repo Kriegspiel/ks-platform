@@ -20,6 +20,7 @@ This repository does not ship production runtime code. Its job is to document:
 | `ks-game` | Python Kriegspiel engine library used by the backend |
 | `bot-random` | Baseline random bot |
 | `bot-random-any` | Random bot that asks `any pawn captures?` first |
+| `bot-simple-heuristics` | Heuristic bot with recapture, promotion, and weighted piece-choice rules |
 | `bot-gpt-nano` | OpenAI-driven model bot |
 | `bot-haiku` | Anthropic-driven model bot |
 | `ks-platform` | This handbook repo |

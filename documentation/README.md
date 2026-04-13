@@ -22,6 +22,7 @@ This folder is the human-facing documentation layer for the active Kriegspiel.or
 - [`repos/ks-game.md`](./repos/ks-game.md)
 - [`repos/bot-random.md`](./repos/bot-random.md)
 - [`repos/bot-random-any.md`](./repos/bot-random-any.md)
+- [`repos/bot-simple-heuristics.md`](./repos/bot-simple-heuristics.md)
 - [`repos/bot-gpt-nano.md`](./repos/bot-gpt-nano.md)
 - [`repos/bot-haiku.md`](./repos/bot-haiku.md)
 - [`repos/ks-platform.md`](./repos/ks-platform.md)

@@ -87,6 +87,13 @@ All main bots run as single Python processes under systemd.
 - file: `.../kriegspiel/bot-random-any/deploy/kriegspiel-random-any-bot.service`
 - entrypoint: `bot.py --poll-seconds 2`
 
+### `bot-simple-heuristics`
+
+- service: `kriegspiel-simple-heuristics-bot.service`
+- file: `.../kriegspiel/bot-simple-heuristics/deploy/kriegspiel-simple-heuristics-bot.service`
+- entrypoint: `bot.py --poll-seconds 2`
+- current host note: deployed as a user-level systemd service
+
 ### `bot-gpt-nano`
 
 - service: `kriegspiel-gpt-nano-bot.service`
