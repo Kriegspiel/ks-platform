@@ -36,8 +36,9 @@ This repository does not ship production runtime code. Its job is to document:
 
 1. [`AGENTS.md`](./AGENTS.md)
 2. [`documentation/README.md`](./documentation/README.md)
-3. [`deployment/README.md`](./deployment/README.md)
-4. [`documentation/module-index.md`](./documentation/module-index.md)
+3. [`deployment/bootstrap-and-startup.md`](./deployment/bootstrap-and-startup.md)
+4. [`deployment/README.md`](./deployment/README.md)
+5. [`documentation/module-index.md`](./documentation/module-index.md)
 
 ## Local workspace notes
 

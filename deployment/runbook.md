@@ -41,6 +41,10 @@ Checklist:
    - affected page
    - version footer
 
+Reference startup/deploy details:
+
+- [`bootstrap-and-startup.md`](./bootstrap-and-startup.md)
+
 ## 3. Static public site change
 
 Repo:
@@ -54,6 +58,10 @@ Checklist:
 3. run focused route/content tests
 4. refresh the static site
 5. verify the public page on `kriegspiel.org`
+
+Reference startup/deploy details:
+
+- [`bootstrap-and-startup.md`](./bootstrap-and-startup.md)
 
 ## 4. Content-only change
 
@@ -87,6 +95,10 @@ Checklist:
    - process is back up
    - bot can still authenticate
    - active game behavior still works
+
+Reference startup/deploy details:
+
+- [`bootstrap-and-startup.md`](./bootstrap-and-startup.md)
 
 ## 6. Architecture cleanup or migration
 

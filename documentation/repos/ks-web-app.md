@@ -19,6 +19,22 @@ It owns:
 - framework: React + Vite
 - API pattern: same-origin relative `/api/...`
 
+## Startup notes
+
+Local development:
+
+```bash
+cd .../kriegspiel/ks-web-app/frontend
+npm ci
+npm run dev -- --host 127.0.0.1 --port 5173
+```
+
+Live service:
+
+- `ks-web-app-frontend.service`
+- serves `frontend/dist/` through Vite preview on `127.0.0.1:4173`
+- depends on `frontend/node_modules/` being present because the service runs `node_modules/vite/bin/vite.js`
+
 ## Main layout
 
 ### `frontend/src/App.jsx`

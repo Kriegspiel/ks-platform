@@ -19,6 +19,23 @@ It owns:
 - framework: FastAPI
 - database: MongoDB via Motor
 
+## Startup notes
+
+Local development:
+
+```bash
+cd .../kriegspiel/ks-backend
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r src/app/requirements-dev.txt
+uvicorn app.main:app --app-dir src --reload --host 127.0.0.1 --port 8000
+```
+
+Live service:
+
+- `ks-backend.service`
+- environment file: `/etc/default/ks-backend`
+
 ## Main module layout
 
 ### `src/app/main.py`
