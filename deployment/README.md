@@ -19,6 +19,8 @@ This folder documents how the Kriegspiel.org system is run and orchestrated.
 
 ## Key documents
 
+- [`bootstrap-and-startup.md`](./bootstrap-and-startup.md)
+  - prerequisites, env files, startup order, live process commands, and common failure modes
 - [`services-and-processes.md`](./services-and-processes.md)
   - systemd services, background loops, timers
 - [`domains-and-routing.md`](./domains-and-routing.md)
