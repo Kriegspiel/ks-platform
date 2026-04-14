@@ -37,7 +37,10 @@ The main difference from `bot-random` is that it uses the `ask any` path before 
 ## Behavior
 
 - favors the `Any` rule flow when the variant supports it
+- auto-creates human-joinable waiting games when under the cap and without its own waiting game
+- allows up to `5` active games
 - samples bot-vs-bot joins at most once per minute
+- bot-vs-bot join probability is `50%`
 - handles games sequentially in one process
 
 ## Operational notes

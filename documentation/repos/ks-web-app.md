@@ -98,8 +98,13 @@ Cross-page state such as auth and theme.
 - move submission
 - `ask any pawn captures?`
 - phantom-piece board interactions
+- current-message rendering for waiting / illegal / latest referee status
 - referee log rendering
-- status card and game code display
+- bottom detail cards for:
+  - game
+  - opponent
+  - status
+  - actions
 
 Important rule:
 

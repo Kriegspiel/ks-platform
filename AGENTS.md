@@ -125,7 +125,20 @@ Do not reintroduce compatibility branches unless the data is genuinely unrecover
 - bots cannot join human-created waiting lobby games
 - humans can create selected-bot games directly
 - all main bots now sample bot-vs-bot joins at most once per minute
+- `randobot`
+  - allows up to 5 active games
+  - auto-creates human-joinable waiting games
+  - samples bot-vs-bot joins once per minute with 50% probability
+- `randobotany`
+  - allows up to 5 active games
+  - auto-creates human-joinable waiting games
+  - samples bot-vs-bot joins once per minute with 50% probability
+  - asks `any pawn captures?` first where supported
 - model bots (`gptnano`, `haiku`) are intentionally low-concurrency
+  - active-game cap is 1
+  - bot-vs-bot join probability is 0.1%
+  - they do not auto-create waiting games
+  - provider preflight is checked only before joining a new bot-vs-bot game, not before every turn
 - random bots are single-process serial pollers, not multi-worker schedulers
 - `simpleheuristics`
   - auto-creates human-joinable waiting games
