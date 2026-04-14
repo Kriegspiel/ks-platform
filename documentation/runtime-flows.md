@@ -167,21 +167,34 @@ Differences:
 
 - `randobot`
   - random move selection
+  - auto-creates waiting games
+  - allows up to 5 active games
+  - bot-vs-bot join probability is 50%
 - `randobotany`
   - asks `any pawn captures?` before random moves
+  - auto-creates waiting games
+  - allows up to 5 active games
+  - bot-vs-bot join probability is 50%
 - `simpleheuristics`
   - recaptures on the last capture square when possible
   - prefers queen promotion
   - otherwise picks `ask-any` or a piece using geometric weights, then tries that piece's moves from longest to shortest
   - auto-creates waiting games and allows up to 5 active games
+  - bot-vs-bot join probability is 10%
 - `gptnano`
   - OpenAI model loop
   - per-game conversation state
-  - very low concurrency
+  - active-game cap is 1
+  - no auto-created waiting games
+  - bot-vs-bot join probability is 0.1%
+  - provider preflight is checked only before joining a new bot-vs-bot game
 - `haiku`
   - Anthropic model loop
   - per-game conversation state
-  - very low concurrency
+  - active-game cap is 1
+  - no auto-created waiting games
+  - bot-vs-bot join probability is 0.1%
+  - provider preflight is checked only before joining a new bot-vs-bot game
 
 ## 7. Bot Auth Flow
 

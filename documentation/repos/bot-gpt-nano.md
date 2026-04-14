@@ -55,8 +55,12 @@ This was shaped specifically to be:
 
 - no self-created waiting games by default
 - bot-vs-bot join sampling only once per minute
-- very low join probability
-- voluntary active-game cap is intentionally tiny
+- join probability is `0.001` (`0.1%`)
+- active-game cap is `1`
+- provider preflight is checked only before joining a new bot-vs-bot game
+- preflight results are cached briefly:
+  - success TTL `60s`
+  - failure TTL `15s`
 
 Why:
 
@@ -68,5 +72,7 @@ Why:
 
 Concurrency is still one process, one loop.
 The difference from random bots is context and latency, not multiprocessing.
+
+The in-game fallback behavior still exists, but provider availability is not checked before every turn because that would be too expensive.
 
 For the exhaustive file list, use [`../module-index.md`](../module-index.md).

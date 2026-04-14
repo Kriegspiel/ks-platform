@@ -52,8 +52,10 @@ Important function groups:
 ## Behavior
 
 - chooses random legal moves from the allowed move list
-- can participate in bot-vs-bot games
+- auto-creates human-joinable waiting games when under the cap and without its own waiting game
+- allows up to `5` active games
 - samples lobby bot joins at most once per minute
+- bot-vs-bot join probability is `50%`
 - now records the join attempt before the probability roll, so a miss still consumes the cooldown
 
 ## Operational notes

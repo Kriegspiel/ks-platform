@@ -52,8 +52,12 @@ Like `gptnano`, it uses:
 
 - no self-created waiting games by default
 - join sampling only once per minute
-- very low bot-vs-bot join probability
-- intentionally low concurrency
+- join probability is `0.001` (`0.1%`)
+- active-game cap is `1`
+- provider preflight is checked only before joining a new bot-vs-bot game
+- preflight results are cached briefly:
+  - success TTL `60s`
+  - failure TTL `15s`
 
 ## Practical difference from `bot-gpt-nano`
 
