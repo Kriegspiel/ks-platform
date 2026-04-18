@@ -2,102 +2,12 @@
 from __future__ import annotations
 
 import subprocess
-from collections import OrderedDict
-from dataclasses import dataclass
 from pathlib import Path
 
+from workspace_repos import GITHUB_ORG, REPO_GROUPS
 
 PLATFORM_ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = PLATFORM_ROOT / "documentation" / "repo-map.md"
-GITHUB_ORG = "Kriegspiel"
-
-
-@dataclass(frozen=True)
-class RepoEntry:
-    name: str
-    role: str
-    surface: str
-
-
-REPO_GROUPS = OrderedDict(
-    [
-        (
-            "Core services",
-            [
-                RepoEntry(
-                    "ks-backend",
-                    "FastAPI backend for API contracts, persistence, ratings, auth, and transcripts",
-                    "`api.kriegspiel.org`, `ks-backend.service`",
-                ),
-                RepoEntry(
-                    "ks-web-app",
-                    "Authenticated React frontend for lobby, play, review, profiles, and reports",
-                    "`app.kriegspiel.org`, `ks-web-app-frontend.service`",
-                ),
-                RepoEntry(
-                    "ks-home",
-                    "Static public site renderer and server for the marketing/docs website",
-                    "`kriegspiel.org`, `ks-home.service`",
-                ),
-            ],
-        ),
-        (
-            "Content and shared library",
-            [
-                RepoEntry(
-                    "content",
-                    "Source-of-truth content for blog, changelog, rules, and site copy",
-                    "Consumed by `ks-home` during refresh/build",
-                ),
-                RepoEntry(
-                    "ks-game",
-                    "Python Kriegspiel engine library, move objects, and serialization",
-                    "Library dependency, published to PyPI",
-                ),
-            ],
-        ),
-        (
-            "Bots",
-            [
-                RepoEntry(
-                    "bot-random",
-                    "Baseline random bot",
-                    "`kriegspiel-random-bot.service`",
-                ),
-                RepoEntry(
-                    "bot-random-any",
-                    "Random bot that asks pawn-capture questions first",
-                    "`kriegspiel-random-any-bot.service`",
-                ),
-                RepoEntry(
-                    "bot-simple-heuristics",
-                    "Heuristic bot with recapture, promotion, and weighted choice logic",
-                    "`kriegspiel-simple-heuristics-bot.service`",
-                ),
-                RepoEntry(
-                    "bot-gpt-nano",
-                    "OpenAI-driven model bot",
-                    "`kriegspiel-gpt-nano-bot.service`",
-                ),
-                RepoEntry(
-                    "bot-haiku",
-                    "Anthropic-driven model bot",
-                    "`kriegspiel-haiku-bot.service`",
-                ),
-            ],
-        ),
-        (
-            "Platform and operations",
-            [
-                RepoEntry(
-                    "ks-platform",
-                    "Org-level documentation, deployment handbook, and operator memory",
-                    "Documentation-only handbook repo",
-                ),
-            ],
-        ),
-    ]
-)
 
 
 def find_workspace_root() -> Path:
@@ -181,6 +91,12 @@ def main() -> None:
         "- Use branch links for navigation and pinned commit links for rollout notes, audits, and deployment references.",
         "",
         "A single link cannot be both permanently pinned and always-latest. Keeping both link types is the safest pattern.",
+        "",
+        "## Workspace bootstrap",
+        "",
+        "Use [`scripts/bootstrap_workspace.py`](../scripts/bootstrap_workspace.py) after cloning `ks-platform` if you want this repo to act as the entry point for a fresh machine.",
+        "",
+        "That script clones the sibling repos into the same workspace root and creates the shared helper directories.",
         "",
     ]
 

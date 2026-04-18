@@ -28,6 +28,39 @@ Optional bot repos:
 - `.../kriegspiel/bot-gpt-nano`
 - `.../kriegspiel/bot-haiku`
 
+## One-repo bootstrap
+
+If you are starting from a fresh machine, `ks-platform` can be the only repo you clone manually.
+
+Example:
+
+```bash
+git clone git@github.com:Kriegspiel/ks-platform.git
+cd ks-platform
+python3 scripts/bootstrap_workspace.py --include-bots
+```
+
+What that does:
+
+- treats the parent of the current `ks-platform` checkout as the workspace root
+- clones the required sibling repos there
+- optionally clones the bot repos
+- ensures the shared workspace helper directories exist:
+  - `_wroktrees`
+  - `_tmp`
+  - `.site-refresh`
+
+If you do not need the bots on the new machine, omit `--include-bots`.
+
+Useful options:
+
+- `--workspace-root /path/to/kriegspiel`
+  - clones the sibling repos into an explicit workspace root
+- `--update-existing`
+  - fetches already-cloned repos instead of leaving them untouched
+- `--https`
+  - clones over HTTPS instead of SSH
+
 ## Runtime prerequisites
 
 ### Backend

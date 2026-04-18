@@ -13,6 +13,12 @@ It is grouped by responsibility so `ks-platform` can act as the main entry point
 
 A single link cannot be both permanently pinned and always-latest. Keeping both link types is the safest pattern.
 
+## Workspace bootstrap
+
+Use [`scripts/bootstrap_workspace.py`](../scripts/bootstrap_workspace.py) after cloning `ks-platform` if you want this repo to act as the entry point for a fresh machine.
+
+That script clones the sibling repos into the same workspace root and creates the shared helper directories.
+
 ## Core services
 
 | Repo | Purpose | Surface / deployment | Default branch | Current default-branch HEAD |
@@ -42,4 +48,4 @@ A single link cannot be both permanently pinned and always-latest. Keeping both 
 
 | Repo | Purpose | Surface / deployment | Default branch | Current default-branch HEAD |
 | --- | --- | --- | --- | --- |
-| [`ks-platform`](https://github.com/Kriegspiel/ks-platform) | Org-level documentation, deployment handbook, and operator memory | Documentation-only handbook repo | [`main`](https://github.com/Kriegspiel/ks-platform/tree/main) | [`1b6d861`](https://github.com/Kriegspiel/ks-platform/commit/1b6d861c97803a06ffb6b2892e5ffcff103d3b26) |
+| [`ks-platform`](https://github.com/Kriegspiel/ks-platform) | Org-level documentation, deployment handbook, and operator memory | Documentation-only handbook repo | [`main`](https://github.com/Kriegspiel/ks-platform/tree/main) | [`f99b690`](https://github.com/Kriegspiel/ks-platform/commit/f99b6904b578e79eac2830349c21c0f7f55cc6e6) |
