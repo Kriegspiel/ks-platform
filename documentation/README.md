@@ -4,6 +4,8 @@ This folder is the human-facing documentation layer for the active Kriegspiel.or
 
 ## Files
 
+- [`repo-map.md`](./repo-map.md)
+  - grouped index of repos, default branches, and current default-branch HEAD commits
 - [`data-structures.md`](./data-structures.md)
   - shared models, payloads, identifiers, and persisted shapes
 - [`runtime-flows.md`](./runtime-flows.md)
@@ -33,10 +35,12 @@ When repo layout or public behavior changes:
 
 1. update the affected repo note(s)
 2. update shared docs if a contract changed
-3. regenerate [`module-index.md`](./module-index.md)
+3. regenerate [`repo-map.md`](./repo-map.md)
+4. regenerate [`module-index.md`](./module-index.md)
 
 Command:
 
 ```bash
+python scripts/generate_repo_map.py
 python scripts/generate_inventory.py
 ```
