@@ -1,8 +1,34 @@
-# AGENTS.md
+# Kriegspiel Workspace Notes
 
-This file is the operational memory for future work across the Kriegspiel.org repos.
+This workspace keeps project-specific Codex skills in `/Users/fil/Developer/kriegspiel/_skills/`.
 
-## Scope
+## Project-Local Skills
+
+- For remote machine work on host alias `rpis02-cf`, use `/Users/fil/Developer/kriegspiel/_skills/rpis02-cf-remote-ops/`.
+- Keep that skill project-local. Do not install or symlink it into `~/.codex/skills` unless explicitly requested.
+
+## Remote Ops Defaults
+
+- Remote host: `rpis02-cf`
+- Remote repo root: `/home/fil/dev/kriegspiel`
+- Prefer `/Users/fil/Developer/kriegspiel/_skills/rpis02-cf-remote-ops/scripts/run-remote.sh` for non-interactive commands.
+- Prefer `/Users/fil/Developer/kriegspiel/_skills/rpis02-cf-remote-ops/scripts/open-shell.sh` for interactive SSH sessions.
+- Use `ks-platform` as the operations handbook for service names, rollout steps, and verification expectations.
+
+## Typical Workflow
+
+- Do development locally in a dedicated branch and dedicated worktree under `/Users/fil/Developer/kriegspiel/_wroktrees/`.
+- Prefer clean, focused changes per repo. Do not mix unrelated repo changes in one branch.
+- When code changes ship to users, bump the repo version before merge. For test-only or docs-only changes, do not bump the version unless explicitly requested.
+- Open a PR for substantive changes. Use a clear title and a detailed description covering what changed, why, how it was tested, and any deployment notes.
+- Test remotely on `rpis02-cf` before merge when remote validation matters. Prefer a temporary remote worktree for pre-merge validation instead of changing the deployed checkout.
+- Comment on the PR with remote test results, important observations, and the exact commit that was verified.
+- If remote tests fail, fix locally, commit, push, and rerun remote verification. Iterate until green rather than stopping after the first failure.
+- Merge the PR once validation is complete, then delete the feature branch unless there is a reason to keep it.
+- After merge, fast-forward the deployed remote checkout, rerun the needed tests there, and restart the relevant service when runtime code changed.
+- After restart, verify service health and any relevant public endpoint, then report back with the final deployed commit and verification result.
+
+## ks-platform Role
 
 Use this repo as the source of truth for:
 
@@ -11,7 +37,7 @@ Use this repo as the source of truth for:
 - architecture constraints
 - historical decisions that should not be rediscovered repeatedly
 
-## Canonical repo responsibilities
+## Canonical Repo Responsibilities
 
 - `ks-backend`
   - owns API contracts, persistence, authentication, rating/stat computation, transcript generation, and game lifecycle
@@ -26,7 +52,7 @@ Use this repo as the source of truth for:
 - `bot-*`
   - own individual bot runtimes and systemd units
 
-## Current runtime shape
+## Current Runtime Shape
 
 - `kriegspiel.org`
   - static site built by `ks-home`
@@ -42,7 +68,7 @@ Practical rule:
 - browser code should prefer `app.kriegspiel.org/api`
 - programmatic clients can use `api.kriegspiel.org`
 
-## Architecture rules that should stay true
+## Architecture Rules That Should Stay True
 
 ### Game identifiers
 
@@ -120,7 +146,7 @@ Do not reintroduce compatibility branches unless the data is genuinely unrecover
 - `kriegspiel.org/leaderboard` is static, human-only, overall-rating only
 - richer live leaderboard stays on `app.kriegspiel.org/leaderboard`
 
-## Bot behavior rules worth preserving
+## Bot Behavior Rules Worth Preserving
 
 - bots cannot join human-created waiting lobby games
 - humans can create selected-bot games directly
@@ -159,7 +185,7 @@ If bot join behavior changes, document:
 - deleted waiting games release their `game_code`
 - completed archived games keep their `game_code` reserved permanently
 
-## Deployment rules
+## Deployment Rules
 
 - by default, shared-repo changes should land through a branch plus PR flow
 - direct pushes to `main` should be treated as exceptions for:
@@ -171,7 +197,7 @@ If bot join behavior changes, document:
 - content-only changes usually do not require backend/frontend version bumps
 - content changes require a `ks-home` refresh to reach `kriegspiel.org`
 
-## Validation expectations
+## Validation Expectations
 
 Before calling work done:
 
@@ -191,9 +217,10 @@ Typical examples:
   - `npm run build`
   - route/content tests
 
-## Repo hygiene
+## Repo Hygiene
 
 - keep `ks-platform` documentation current when architecture changes materially
+- regenerate [`documentation/repo-map.md`](./documentation/repo-map.md) after repo ownership/default-branch/HEAD changes
 - regenerate [`documentation/module-index.md`](./documentation/module-index.md) after major repo/layout changes
 - do not let `ks-platform` drift into a second source of truth for content owned elsewhere
 - document decisions here, but keep the actual implementation in its owning repo

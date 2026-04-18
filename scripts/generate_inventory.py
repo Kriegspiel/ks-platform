@@ -9,7 +9,6 @@ from pathlib import Path
 
 
 PLATFORM_ROOT = Path(__file__).resolve().parents[1]
-WORKSPACE_ROOT = PLATFORM_ROOT.parent
 OUTPUT = PLATFORM_ROOT / "documentation" / "module-index.md"
 
 REPOS = OrderedDict(
@@ -31,6 +30,7 @@ REPOS = OrderedDict(
 SKIP_DIRS = {
     ".git",
     ".venv",
+    "env",
     ".pytest_cache",
     ".mypy_cache",
     "__pycache__",
@@ -59,6 +59,17 @@ RELEVANT_SUFFIXES = {
 }
 
 SPECIAL_FILES = {"README.md", "AGENTS.md", "LICENSE", ".env.example"}
+
+
+def find_workspace_root() -> Path:
+    sentinels = ("ks-backend", "ks-web-app", "ks-home", "content", "ks-game")
+    for candidate in (PLATFORM_ROOT, *PLATFORM_ROOT.parents):
+        if all((candidate / name).exists() for name in sentinels):
+            return candidate
+    raise RuntimeError("Could not locate the Kriegspiel workspace root from this checkout.")
+
+
+WORKSPACE_ROOT = find_workspace_root()
 
 
 def iter_repo_files(repo_root: Path) -> list[Path]:

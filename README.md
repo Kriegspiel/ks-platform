@@ -9,27 +9,44 @@ This repository does not ship production runtime code. Its job is to document:
 - deployment and orchestration rules
 - agent/operator guidance for future work
 
-## Active repos
+## Main entry points
 
-| Repo | Role |
-| --- | --- |
-| `ks-backend` | FastAPI backend for `api.kriegspiel.org` and the `/api` surface behind `app.kriegspiel.org` |
-| `ks-web-app` | Authenticated React application at `app.kriegspiel.org` |
-| `ks-home` | Static public website at `kriegspiel.org` |
-| `content` | Source-of-truth content for blog, changelog, rules, and site copy |
-| `ks-game` | Python Kriegspiel engine library used by the backend |
-| `bot-random` | Baseline random bot |
-| `bot-random-any` | Random bot that asks `any pawn captures?` first |
-| `bot-simple-heuristics` | Heuristic bot with recapture, promotion, and weighted piece-choice rules |
-| `bot-gpt-nano` | OpenAI-driven model bot |
-| `bot-haiku` | Anthropic-driven model bot |
-| `ks-platform` | This handbook repo |
+- [`documentation/repo-map.md`](./documentation/repo-map.md)
+  - grouped index of active repos, default branches, and current default-branch HEAD commits
+- [`AGENTS.md`](./AGENTS.md)
+  - workspace workflow plus platform-specific operational rules
+- [`deployment/README.md`](./deployment/README.md)
+  - deployment topology, services, routing, and rollout docs
+- [`documentation/module-index.md`](./documentation/module-index.md)
+  - exhaustive generated file/module inventory across the active repos
+
+## Repo grouping
+
+- Core services:
+  - `ks-backend`
+  - `ks-web-app`
+  - `ks-home`
+- Content and shared library:
+  - `content`
+  - `ks-game`
+- Bots:
+  - `bot-random`
+  - `bot-random-any`
+  - `bot-simple-heuristics`
+  - `bot-gpt-nano`
+  - `bot-haiku`
+- Platform and operations:
+  - `ks-platform`
+
+For the structured version with GitHub links, branch links, and pinned HEAD commit links, use [`documentation/repo-map.md`](./documentation/repo-map.md).
 
 ## Repo layout
 
 - [`AGENTS.md`](./AGENTS.md): cross-repo working rules for agents and operators
+- [`documentation/repo-map.md`](./documentation/repo-map.md): grouped repo index with current default-branch commit links
 - [`documentation/`](./documentation/README.md): architecture, repo notes, data structures, runtime flows, exhaustive module index
 - [`deployment/`](./deployment/README.md): deployment topology, domains, services, rollout rules
+- [`scripts/generate_repo_map.py`](./scripts/generate_repo_map.py): regenerates the grouped repo map
 - [`scripts/generate_inventory.py`](./scripts/generate_inventory.py): regenerates the module inventory snapshot
 
 ## Recommended reading order
@@ -51,12 +68,18 @@ Outside this repo, the current local workspace typically also contains:
 
 Those are workspace details, not organization repos.
 
-## Refreshing the module index
+## Refreshing generated docs
 
 Run:
 
 ```bash
+python scripts/generate_repo_map.py
 python scripts/generate_inventory.py
 ```
 
-That rewrites [`documentation/module-index.md`](./documentation/module-index.md) from the checked-out active repos under `.../kriegspiel/`.
+That rewrites:
+
+- [`documentation/repo-map.md`](./documentation/repo-map.md)
+- [`documentation/module-index.md`](./documentation/module-index.md)
+
+from the checked-out active repos under `.../kriegspiel/`.
