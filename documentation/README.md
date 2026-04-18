@@ -6,6 +6,8 @@ This folder is the human-facing documentation layer for the active Kriegspiel.or
 
 - [`repo-map.md`](./repo-map.md)
   - grouped index of repos, default branches, and current default-branch HEAD commits
+- [`../scripts/bootstrap_workspace.py`](../scripts/bootstrap_workspace.py)
+  - clones the active sibling repos from a single `ks-platform` checkout
 - [`data-structures.md`](./data-structures.md)
   - shared models, payloads, identifiers, and persisted shapes
 - [`runtime-flows.md`](./runtime-flows.md)
@@ -41,6 +43,6 @@ When repo layout or public behavior changes:
 Command:
 
 ```bash
-python scripts/generate_repo_map.py
-python scripts/generate_inventory.py
+python3 scripts/generate_repo_map.py
+python3 scripts/generate_inventory.py
 ```

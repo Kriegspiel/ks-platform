@@ -13,12 +13,36 @@ This repository does not ship production runtime code. Its job is to document:
 
 - [`documentation/repo-map.md`](./documentation/repo-map.md)
   - grouped index of active repos, default branches, and current default-branch HEAD commits
+- [`scripts/bootstrap_workspace.py`](./scripts/bootstrap_workspace.py)
+  - clones the rest of the active repos beside this checkout so `ks-platform` can be the first repo on a new machine
 - [`AGENTS.md`](./AGENTS.md)
   - workspace workflow plus platform-specific operational rules
 - [`deployment/README.md`](./deployment/README.md)
   - deployment topology, services, routing, and rollout docs
 - [`documentation/module-index.md`](./documentation/module-index.md)
   - exhaustive generated file/module inventory across the active repos
+
+## Clone one repo first
+
+If you are setting up a fresh server or workstation, clone `ks-platform` first and use it to create the rest of the workspace:
+
+```bash
+git clone git@github.com:Kriegspiel/ks-platform.git
+cd ks-platform
+python3 scripts/bootstrap_workspace.py --include-bots
+```
+
+By default that script:
+
+- treats the parent directory of the current `ks-platform` checkout as the workspace root
+- clones the required sibling repos there
+- optionally clones the bot repos when `--include-bots` is passed
+- ensures the shared workspace directories exist:
+  - `_wroktrees`
+  - `_tmp`
+  - `.site-refresh`
+
+If you want only the main application repos, omit `--include-bots`.
 
 ## Repo grouping
 
@@ -46,6 +70,8 @@ For the structured version with GitHub links, branch links, and pinned HEAD comm
 - [`documentation/repo-map.md`](./documentation/repo-map.md): grouped repo index with current default-branch commit links
 - [`documentation/`](./documentation/README.md): architecture, repo notes, data structures, runtime flows, exhaustive module index
 - [`deployment/`](./deployment/README.md): deployment topology, domains, services, rollout rules
+- [`scripts/bootstrap_workspace.py`](./scripts/bootstrap_workspace.py): clones the active repos into a fresh workspace root
+- [`scripts/workspace_repos.py`](./scripts/workspace_repos.py): shared repo catalog for bootstrap and repo-map generation
 - [`scripts/generate_repo_map.py`](./scripts/generate_repo_map.py): regenerates the grouped repo map
 - [`scripts/generate_inventory.py`](./scripts/generate_inventory.py): regenerates the module inventory snapshot
 
@@ -73,8 +99,8 @@ Those are workspace details, not organization repos.
 Run:
 
 ```bash
-python scripts/generate_repo_map.py
-python scripts/generate_inventory.py
+python3 scripts/generate_repo_map.py
+python3 scripts/generate_inventory.py
 ```
 
 That rewrites:
