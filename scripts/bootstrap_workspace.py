@@ -99,6 +99,8 @@ def main() -> int:
     print("")
     print("Next steps:")
     print(f"- Read {PLATFORM_ROOT / 'README.md'}")
+    print(f"- Read {PLATFORM_ROOT / 'AGENTS.md'}")
+    print(f"- Read {PLATFORM_ROOT / 'deployment' / 'new-server-bootstrap.md'}")
     print(f"- Read {PLATFORM_ROOT / 'deployment' / 'bootstrap-and-startup.md'}")
     print("- Create the required env files before starting services.")
     print("- Install repo-local dependencies inside each cloned repo as needed.")

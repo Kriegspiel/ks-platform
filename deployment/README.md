@@ -19,6 +19,8 @@ This folder documents how the Kriegspiel.org system is run and orchestrated.
 
 ## Key documents
 
+- [`new-server-bootstrap.md`](./new-server-bootstrap.md)
+  - single-machine bootstrap checklist for a fresh workstation or server
 - [`bootstrap-and-startup.md`](./bootstrap-and-startup.md)
   - prerequisites, env files, startup order, live process commands, and common failure modes
 - [`services-and-processes.md`](./services-and-processes.md)

@@ -4,6 +4,8 @@ This folder is the human-facing documentation layer for the active Kriegspiel.or
 
 ## Files
 
+- [`../deployment/new-server-bootstrap.md`](../deployment/new-server-bootstrap.md)
+  - start-here checklist for bringing up a fresh machine from a single `ks-platform` clone
 - [`repo-map.md`](./repo-map.md)
   - grouped index of repos, default branches, and current default-branch HEAD commits
 - [`../scripts/bootstrap_workspace.py`](../scripts/bootstrap_workspace.py)

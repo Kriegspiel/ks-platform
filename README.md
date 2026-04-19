@@ -11,6 +11,8 @@ This repository does not ship production runtime code. Its job is to document:
 
 ## Main entry points
 
+- [`deployment/new-server-bootstrap.md`](./deployment/new-server-bootstrap.md)
+  - start-here checklist for bringing up a fresh workstation or server from a single `ks-platform` clone
 - [`documentation/repo-map.md`](./documentation/repo-map.md)
   - grouped index of active repos, default branches, and current default-branch HEAD commits
 - [`scripts/bootstrap_workspace.py`](./scripts/bootstrap_workspace.py)
@@ -31,6 +33,12 @@ git clone git@github.com:Kriegspiel/ks-platform.git
 cd ks-platform
 python3 scripts/bootstrap_workspace.py --include-bots
 ```
+
+Then continue with:
+
+- [`deployment/new-server-bootstrap.md`](./deployment/new-server-bootstrap.md)
+- [`AGENTS.md`](./AGENTS.md)
+- [`deployment/bootstrap-and-startup.md`](./deployment/bootstrap-and-startup.md)
 
 By default that script:
 
@@ -77,11 +85,12 @@ For the structured version with GitHub links, branch links, and pinned HEAD comm
 
 ## Recommended reading order
 
-1. [`AGENTS.md`](./AGENTS.md)
-2. [`documentation/README.md`](./documentation/README.md)
-3. [`deployment/bootstrap-and-startup.md`](./deployment/bootstrap-and-startup.md)
-4. [`deployment/README.md`](./deployment/README.md)
-5. [`documentation/module-index.md`](./documentation/module-index.md)
+1. [`deployment/new-server-bootstrap.md`](./deployment/new-server-bootstrap.md)
+2. [`AGENTS.md`](./AGENTS.md)
+3. [`documentation/README.md`](./documentation/README.md)
+4. [`deployment/bootstrap-and-startup.md`](./deployment/bootstrap-and-startup.md)
+5. [`deployment/README.md`](./deployment/README.md)
+6. [`documentation/module-index.md`](./documentation/module-index.md)
 
 ## Local workspace notes
 
