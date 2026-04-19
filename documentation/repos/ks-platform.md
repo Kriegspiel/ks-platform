@@ -31,6 +31,10 @@ This repo keeps the operational memory in one place so future work does not depe
 
 Org map and repo-structure entry point.
 
+### `deployment/new-server-bootstrap.md`
+
+Single-machine bootstrap guide for a fresh workstation or server.
+
 ### `AGENTS.md`
 
 Cross-repo working rules and architectural constraints.

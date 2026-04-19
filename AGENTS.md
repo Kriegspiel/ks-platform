@@ -15,6 +15,16 @@ This workspace keeps project-specific Codex skills in `/Users/fil/Developer/krie
 - Prefer `/Users/fil/Developer/kriegspiel/_skills/rpis02-cf-remote-ops/scripts/open-shell.sh` for interactive SSH sessions.
 - Use `ks-platform` as the operations handbook for service names, rollout steps, and verification expectations.
 
+## New Server Setup Expectations
+
+- Treat `ks-platform` as the first repo to clone on a fresh machine.
+- After cloning `ks-platform`, run `python3 scripts/bootstrap_workspace.py` from that repo to materialize the sibling repos.
+- Use [`deployment/new-server-bootstrap.md`](./deployment/new-server-bootstrap.md) as the start-here checklist for a fresh workstation or server.
+- Keep the repos as siblings under one workspace root rather than nesting them inside `ks-platform`.
+- Create local env files and host-managed secrets outside git before trying to start services.
+- Prove the backend, authenticated frontend, and static site start manually on the new machine before wiring or debugging systemd units.
+- Treat public DNS, TLS, reverse proxy, or tunnel setup as a separate host-level step after the local stack works.
+
 ## Typical Workflow
 
 - Do development locally in a dedicated branch and dedicated worktree under `/Users/fil/Developer/kriegspiel/_wroktrees/`.

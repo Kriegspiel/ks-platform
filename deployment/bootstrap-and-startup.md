@@ -2,6 +2,9 @@
 
 This document is the operational starting point for bringing the Kriegspiel.org stack up on a machine or understanding how the live host runs it today.
 
+If you are starting from a blank machine, read [`new-server-bootstrap.md`](./new-server-bootstrap.md) first.
+That document is the clean step-by-step entrypoint. This one is the lower-level runtime and process reference.
+
 It is intentionally concrete:
 
 - what repos must exist
